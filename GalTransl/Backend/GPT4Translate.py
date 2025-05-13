@@ -1,4 +1,4 @@
-import json, time, asyncio, os, traceback, re
+import json, time, asyncio, os, random, re
 from opencc import OpenCC
 from typing import Optional
 from GalTransl.COpenAI import COpenAITokenPool
@@ -135,9 +135,15 @@ class CGPT4Translate(BaseTranslate):
         )
 
         from GalTransl.Backend.revChatGPT.V3 import Chatbot as ChatbotV3
-        self.api_timeout=config.getBackendConfigSection(section_name).get("apiTimeout", 60)
+
         self.token = self.tokenProvider.getToken()
         eng_name = "gpt-4-1106-preview" if eng_name == "" else eng_name
+        self.api_timeout = config.getBackendConfigSection(section_name).get(
+            "apiTimeout", 60
+        )
+        self.apiErrorWait = config.getBackendConfigSection(section_name).get(
+            "apiErrorWait", "0"
+        )
 
         try:
             change_prompt = CProjectConfig.getProjectConfig(config)['common']['gpt.change_prompt']
@@ -253,6 +259,7 @@ class CGPT4Translate(BaseTranslate):
         else:
             assistant_prompt = ""
         while True:  # 一直循环，直到得到数据
+            api_try_count = 0
             try:
                 # change token
 
@@ -284,6 +291,13 @@ class CGPT4Translate(BaseTranslate):
             except RuntimeError:
                 raise
             except Exception as ex:
+                api_try_count += 1
+                if self.apiErrorWait > 0:
+                    sleep_time = self.apiErrorWait + random.random()
+                else:
+                    # https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
+                    sleep_time = 2 ** min(try_count, 6)
+                    sleep_time = random.randint(0, sleep_time)
                 str_ex = str(ex).lower()
                 LOGGER.error(f"-> {str_ex}")
                 if "quota" in str_ex:
@@ -295,19 +309,15 @@ class CGPT4Translate(BaseTranslate):
                     LOGGER.warning(get_text("request_error_switch_token", GT_LANG, self.token.maskToken()))
                     continue
                 elif "try again later" in str_ex or "too many requests" in str_ex:
-                    LOGGER.warning(
-                        get_text("request_error_too_many", GT_LANG, self.wait_time)
+                    self.pj_config.bar.text(
+                        "-> 检测到频率限制(429 RateLimitError)，翻译仍在进行中但速度将受影响..."
                     )
-                    await asyncio.sleep(self.wait_time)
-                    continue
-                elif "try reload" in str_ex:
-                    self.reset_conversation()
-                    LOGGER.error(get_text("request_error_reset", GT_LANG))
+                    await asyncio.sleep(sleep_time)
                     continue
                 else:
                     self._del_last_answer()
                     LOGGER.info(get_text("request_error_retry", GT_LANG, ex))
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(sleep_time)
                     continue
 
             result_text = resp

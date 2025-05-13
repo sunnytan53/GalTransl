@@ -90,7 +90,6 @@ class ForGalTranslate(BaseTranslate):
                 messages=messages,
                 temperature=self.temperature,
                 frequency_penalty=self.frequency_penalty,
-                stream=True,
             )
 
             result_text = resp
