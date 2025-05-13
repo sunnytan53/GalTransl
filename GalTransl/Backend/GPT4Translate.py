@@ -142,8 +142,10 @@ class CGPT4Translate(BaseTranslate):
             "apiTimeout", 60
         )
         self.apiErrorWait = config.getBackendConfigSection(section_name).get(
-            "apiErrorWait", "0"
+            "apiErrorWait", "auto"
         )
+        if self.apiErrorWait == "auto":
+            self.apiErrorWait = 0
 
         try:
             change_prompt = CProjectConfig.getProjectConfig(config)['common']['gpt.change_prompt']
@@ -296,10 +298,11 @@ class CGPT4Translate(BaseTranslate):
                     sleep_time = self.apiErrorWait + random.random()
                 else:
                     # https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
-                    sleep_time = 2 ** min(try_count, 6)
+                    sleep_time = 2 ** min(api_try_count, 6)
                     sleep_time = random.randint(0, sleep_time)
+
                 str_ex = str(ex).lower()
-                LOGGER.error(f"-> {str_ex}")
+
                 if "quota" in str_ex:
                     self.tokenProvider.reportTokenProblem(self.token)
                     LOGGER.error(get_text("request_error_quota", GT_LANG, self.token.maskToken()))
@@ -316,7 +319,7 @@ class CGPT4Translate(BaseTranslate):
                     continue
                 else:
                     self._del_last_answer()
-                    LOGGER.info(get_text("request_error_retry", GT_LANG, ex))
+                    LOGGER.info(get_text("request_error_retry", GT_LANG, str_ex))
                     await asyncio.sleep(sleep_time)
                     continue
 

@@ -141,7 +141,7 @@ class BaseTranslate:
         stream=None,
         max_tokens=None,
     ):
-        try_count = 0
+        api_try_count = 0
         while True:
             try:
                 if messages == []:
@@ -174,12 +174,12 @@ class BaseTranslate:
                 return result
             except Exception as e:
 
-                try_count += 1
+                api_try_count += 1
                 if self.apiErrorWait > 0:
                     sleep_time = self.apiErrorWait + random.random()
                 else:
                     # https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
-                    sleep_time = 2 ** min(try_count, 6)
+                    sleep_time = 2 ** min(api_try_count, 6)
                     sleep_time = random.randint(0, sleep_time)
 
                 if isinstance(e, RateLimitError):
