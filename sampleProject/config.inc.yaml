@@ -13,7 +13,7 @@ backendSpecific:
   SakuraLLM: # Sakura/Galtransl API
     endpoints:
       - http://127.0.0.1:8080
-      #- http://127.0.0.1:5001 # 可以填入多个endpoints，用于多线程
+      #- https://sakura-share.one/ # 可以填入多个endpoints，用于多线程
     rewriteModelName: "" # 设置自定义的模型名称，在使用ollama时要修改
 
 # 插件，插件列表可在启动程序后选择show-plugs查看，或在plugins目录内查看

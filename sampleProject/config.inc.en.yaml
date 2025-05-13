@@ -41,8 +41,6 @@ common:
     #- "Introduced English" # No English originally, but translation introduced English
 
   # General Translation Settings
-  gpt.streamOutputMode: true # Streaming output effect, ineffective in multi-threading. [True/False]
-  gpt.tooManyRequestsWaitTime: 60 # Wait time for Too Many Requests error, in seconds
   gpt.enhance_jailbreak: False # Reduce general model translation refusals
   # GPT4
   gpt.enableProofRead: false # (GPT4) Whether to enable post-translation proofreading. (Not recommended, long unmaintained) [True/False]
