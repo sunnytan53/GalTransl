@@ -14,11 +14,7 @@ from GalTransl.Cache import save_transCache_to_json
 from GalTransl.Dictionary import CGptDict
 from openai import RateLimitError, AsyncOpenAI
 import re
-from tenacity import (
-    retry,
-    wait_random_exponential,
-)  # for exponential backoff
-
+import random
 
 
 class BaseTranslate:
@@ -26,8 +22,8 @@ class BaseTranslate:
         self,
         config: CProjectConfig,
         eng_type: str,
-        proxy_pool: Optional[CProxyPool]=None,
-        token_pool: COpenAITokenPool=None,
+        proxy_pool: Optional[CProxyPool] = None,
+        token_pool: COpenAITokenPool = None,
     ):
         """
         根据提供的类型、配置、API 密钥和代理设置初始化 Chatbot 对象。
@@ -74,14 +70,14 @@ class BaseTranslate:
         else:
             self.target_lang = LANG_SUPPORTED[self.target_lang]
 
-        # 429等待时间
+        # 429等待时间（废弃）
         self.wait_time = config.getKey("gpt.tooManyRequestsWaitTime", 60)
         # 跳过重试
         self.skipRetry = config.getKey("skipRetry", False)
         # 跳过h
         self.skipH = config.getKey("skipH", False)
 
-        # 流式输出模式
+        # 流式输出模式（废弃）
         self.streamOutputMode = config.getKey("gpt.streamOutputMode", False)
         if config.getKey("workersPerProject") > 1:  # 多线程关闭流式输出
             self.streamOutputMode = False
@@ -108,7 +104,15 @@ class BaseTranslate:
         )
         self.token = self.tokenProvider.getToken()
         base_path = "/v1" if not re.search(r"/v\d+$", self.token.domain) else ""
-        self.api_timeout=config.getBackendConfigSection(section_name).get("apiTimeout", 60)
+        self.api_timeout = config.getBackendConfigSection(section_name).get(
+            "apiTimeout", 60
+        )
+        self.apiErrorWait = config.getBackendConfigSection(section_name).get(
+            "apiErrorWait", "0"
+        )
+        if self.apiErrorWait == "auto":
+            self.apiErrorWait = 0
+
         if self.proxyProvider:
             self.proxy = self.proxyProvider.getProxy()
             client = httpx.AsyncClient(proxy=self.proxy.addr if self.proxy else None)
@@ -122,7 +126,6 @@ class BaseTranslate:
         )
         pass
 
-    @retry(wait=wait_random_exponential(min=1, max=60))
     async def ask_chatbot(
         self,
         model_name="",
@@ -135,45 +138,56 @@ class BaseTranslate:
         stream=False,
         max_tokens=None,
     ):
-        try:
-            if messages == []:
-                messages = [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": prompt},
-                ]
-            response = await self.chatbot.chat.completions.create(
-                model=model_name if model_name else self.model_name,
-                messages=messages,
-                stream=stream,
-                temperature=temperature,
-                frequency_penalty=frequency_penalty,
-                max_tokens=max_tokens,
-                timeout=self.api_timeout,
-                top_p=top_p,
-            )
-            result=""
-            lastline=""
-            if stream:
-                async for chunk in response:
-                    result += chunk.choices[0].delta.content or ""
-                    lastline+=chunk.choices[0].delta.content or ""
-                    if lastline.endswith("\n"):
-                        if self.pj_config.active_workers==1:
-                            print(lastline)
-                        lastline=""
-            else:
-                result = response.choices[0].message.content
-            return result
-        except RateLimitError as e:
-            LOGGER.debug(f"[RateLimit] {e}")
-            raise e
-        except Exception as e:
+        try_count = 0
+        while True:
             try:
-                LOGGER.error(f"[API Error] {response.model_extra['error']}")
-            except:
-                LOGGER.error(f"[API Error] {e}")
-            raise e
-                
+                if messages == []:
+                    messages = [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": prompt},
+                    ]
+                response = await self.chatbot.chat.completions.create(
+                    model=model_name if model_name else self.model_name,
+                    messages=messages,
+                    stream=stream,
+                    temperature=temperature,
+                    frequency_penalty=frequency_penalty,
+                    max_tokens=max_tokens,
+                    timeout=self.api_timeout,
+                    top_p=top_p,
+                )
+                result = ""
+                lastline = ""
+                if stream:
+                    async for chunk in response:
+                        result += chunk.choices[0].delta.content or ""
+                        lastline += chunk.choices[0].delta.content or ""
+                        if lastline.endswith("\n"):
+                            if self.pj_config.active_workers == 1:
+                                print(lastline)
+                            lastline = ""
+                else:
+                    result = response.choices[0].message.content
+                return result
+            except Exception as e:
+
+                try_count += 1
+                if self.apiErrorWait > 0:
+                    sleep_time = self.apiErrorWait
+                else:
+                    # https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
+                    sleep_time = 2 ** min(try_count, 6)
+                    sleep_time = random.randint(0, sleep_time)
+
+                if isinstance(e, RateLimitError):
+                    self.pj_config.bar.text("-> 检测到频率限制(429 RateLimitError)，翻译仍在进行中但可能变慢...")
+                else:
+                    try:
+                        LOGGER.error(f"[API Error] {response.model_extra['error']}, sleeping {sleep_time}s")
+                    except:
+                        LOGGER.error(f"[API Error] {e}, sleeping {sleep_time}s")
+
+                await asyncio.sleep(sleep_time)
 
     def clean_up(self):
         pass
@@ -192,7 +206,6 @@ class BaseTranslate:
         proofread: bool = False,
         retran_key: str = "",
     ) -> CTransList:
-
 
         if self.skipH:
             LOGGER.warning("skipH: 将跳过含有敏感词的句子")

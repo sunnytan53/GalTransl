@@ -213,7 +213,7 @@ async def doLLMTranslate(
     title_update_task = None  # 初始化任务变量
     projectConfig.active_workers = 1
     with alive_bar(
-        total=total_lines, title="翻译进度", unit=" line", enrich_print=False
+        total=total_lines, title="翻译进度", unit=" line", enrich_print=False, dual_line=True
     ) as bar:
         projectConfig.bar = bar
 
