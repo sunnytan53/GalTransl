@@ -110,6 +110,9 @@ class BaseTranslate:
         self.apiErrorWait = config.getBackendConfigSection(section_name).get(
             "apiErrorWait", "0"
         )
+        self.stream=config.getBackendConfigSection(section_name).get(
+            "stream", True
+        )
         if self.apiErrorWait == "auto":
             self.apiErrorWait = 0
 
@@ -135,7 +138,7 @@ class BaseTranslate:
         temperature=0.5,
         frequency_penalty=0.1,
         top_p=1,
-        stream=False,
+        stream=None,
         max_tokens=None,
     ):
         try_count = 0
@@ -149,7 +152,7 @@ class BaseTranslate:
                 response = await self.chatbot.chat.completions.create(
                     model=model_name if model_name else self.model_name,
                     messages=messages,
-                    stream=stream,
+                    stream=stream if stream else self.stream,
                     temperature=temperature,
                     frequency_penalty=frequency_penalty,
                     max_tokens=max_tokens,
@@ -173,17 +176,21 @@ class BaseTranslate:
 
                 try_count += 1
                 if self.apiErrorWait > 0:
-                    sleep_time = self.apiErrorWait
+                    sleep_time = self.apiErrorWait + random.random()
                 else:
                     # https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
                     sleep_time = 2 ** min(try_count, 6)
                     sleep_time = random.randint(0, sleep_time)
 
                 if isinstance(e, RateLimitError):
-                    self.pj_config.bar.text("-> 检测到频率限制(429 RateLimitError)，翻译仍在进行中但可能变慢...")
+                    self.pj_config.bar.text(
+                        "-> 检测到频率限制(429 RateLimitError)，翻译仍在进行中但速度将受影响..."
+                    )
                 else:
                     try:
-                        LOGGER.error(f"[API Error] {response.model_extra['error']}, sleeping {sleep_time}s")
+                        LOGGER.error(
+                            f"[API Error] {response.model_extra['error']}, sleeping {sleep_time}s"
+                        )
                     except:
                         LOGGER.error(f"[API Error] {e}, sleeping {sleep_time}s")
 
