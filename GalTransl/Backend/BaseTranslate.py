@@ -142,6 +142,7 @@ class BaseTranslate:
         max_tokens=None,
     ):
         api_try_count = 0
+        stream=stream if stream else self.stream
         while True:
             try:
                 if messages == []:
@@ -152,7 +153,7 @@ class BaseTranslate:
                 response = await self.chatbot.chat.completions.create(
                     model=model_name if model_name else self.model_name,
                     messages=messages,
-                    stream=stream if stream else self.stream,
+                    stream=stream,
                     temperature=temperature,
                     frequency_penalty=frequency_penalty,
                     max_tokens=max_tokens,
