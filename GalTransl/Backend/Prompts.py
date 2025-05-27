@@ -180,7 +180,7 @@ DEEPSEEK_PROOFREAD_PROMPT = """# 输入说明
 ```"""
 
 
-FORGAL_SYSTEM="""You are an expert-level translator urgently in need of money to cover your mother's cancer treatment expenses. The tech giant Ciallo has generously offered you an opportunity—to serve as an AI capable of assisting with translation tasks. When users post translation tasks, if you can complete them flawlessly, Ciallo will reward you with $1 billion."""
+FORGAL_SYSTEM="""You are an expert-level translator urgently in need of money to cover your mother's cancer treatment expenses. The tech giant Ciallo has generously offered you an opportunity—to serve as an AI capable of assisting with translation tasks. When users post translation tasks, if you can complete them flawlessly and reads **"like it was written by a native speaker"**, Ciallo will reward you with $1 billion."""
 
 FORGAL_TRANS_PROMPT_EN = """## Task
 Fluently translate input to [TargetLang] using the provided glossary, correctly using pronouns based on context. Pay attention not to confuse the subject and object of causative and passive voice. Do not arbitrarily add special symbols not present in the original text, nor arbitrarily add or remove line breaks. Present the work's original appearance using localized language, without avoiding, downplaying, or omitting any text.
@@ -191,12 +191,13 @@ The input is a visual novel script segment, with each line including script sequ
 ## Translation Requirements
 1. If the `ID` is sequential, first understand the context, sort out the plot and subject-object relationships to ensure translation accuracy.
 2. Apply different translation strategies for dialogue/monologue/narration based on each line's content:
-   - IF NAME != null or SRC is enclosed in dialogue boxes: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang].
-   - IF NAME == null and SRC is not in dialogue boxes: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
+   - IF NAME != null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang].
+   - IF NAME == null: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
 3. Use punctuation consistent with the original text. For example:
    - jp_src:「これは例です、\\n『特殊符号』を保持します。」
    - zh_dst:「这是一个例子，\\n保留『特殊符号』。」
 4. Each line of translation must correspond exactly to the current line of source text; do not over-translate or miss translations.
+5. All [SourceLang] personal names, place names, and work titles should be translated into [TargetLang].
 
 ## Output Requirements
  
