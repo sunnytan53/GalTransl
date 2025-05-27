@@ -44,6 +44,8 @@ class ForGalTranslate(BaseTranslate):
         self.init_chatbot(eng_type=eng_type, config=config)
         if "qwen3" in self.model_name.lower():
             self.system_prompt+="/no_think"
+        if "gemini" in self.model_name.lower():
+            self.enhance_jailbreak = True
 
         pass
 
