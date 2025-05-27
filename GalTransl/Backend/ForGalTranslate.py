@@ -67,7 +67,7 @@ class ForGalTranslate(BaseTranslate):
         prompt_req = prompt_req.replace("[TargetLang]", self.target_lang)
 
         if self.enhance_jailbreak:
-            assistant_prompt = "ID\tNAME\tDST"
+            assistant_prompt = "```\nID\tNAME\tDST"
         else:
             assistant_prompt = ""
 
