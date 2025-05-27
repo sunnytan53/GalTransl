@@ -108,7 +108,7 @@ class BaseTranslate:
             "apiTimeout", 60
         )
         self.apiErrorWait = config.getBackendConfigSection(section_name).get(
-            "apiErrorWait", "0"
+            "apiErrorWait", "auto"
         )
         self.stream=config.getBackendConfigSection(section_name).get(
             "stream", True
@@ -164,6 +164,8 @@ class BaseTranslate:
                 lastline = ""
                 if stream:
                     async for chunk in response:
+                        if hasattr(chunk.choices[0].delta, "reasoning_content"):
+                            lastline+=chunk.choices[0].delta.reasoning_content or ""
                         result += chunk.choices[0].delta.content or ""
                         lastline += chunk.choices[0].delta.content or ""
                         if lastline.endswith("\n"):

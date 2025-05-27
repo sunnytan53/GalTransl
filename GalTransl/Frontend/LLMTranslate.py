@@ -138,7 +138,7 @@ async def doLLMTranslate(
             result = await task_func
             return result
         except Exception as e:
-            LOGGER.error(get_text("task_execution_failed", GT_LANG, e))
+            LOGGER.error(get_text("task_execution_failed", GT_LANG, e),exc_info=True)   
             return None
 
     soryBy = projectConfig.getKey("sortBy", "name")
