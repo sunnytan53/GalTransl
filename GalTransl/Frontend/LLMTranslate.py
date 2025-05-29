@@ -80,7 +80,8 @@ async def doLLMTranslate(
     input_splitter = projectConfig.input_splitter
     SplitChunkMetadata.clear_file_finished_chunk()
     total_chunks = []
-
+    projectConfig.active_workers = 1
+    
     makedirs(output_dir, exist_ok=True)
     makedirs(cache_dir, exist_ok=True)
 
@@ -211,7 +212,7 @@ async def doLLMTranslate(
     gptapi = await init_gptapi(projectConfig)
 
     title_update_task = None  # 初始化任务变量
-    projectConfig.active_workers = 1
+
     with alive_bar(
         total=total_lines, title="翻译进度", unit=" line", enrich_print=False, dual_line=True
     ) as bar:
