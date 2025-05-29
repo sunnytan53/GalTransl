@@ -75,6 +75,34 @@ def contains_japanese(text: str) -> bool:
             return True
     return False
 
+def contains_korean(text: str) -> bool:
+    """
+    此函数接受一个字符串作为输入，检查其中是否包含韩文字符。
+
+    参数:
+    - text: 要检查的字符串。
+
+    返回值:
+    - 如果字符串中包含韩文字符，则返回 True，否则返回 False。
+    """
+    # 韩文字符范围
+    hangul_jamo_range = (0x1100, 0x11FF)  # 韩文声母和韵母
+    hangul_compatibility_jamo_range = (0x3130, 0x318F)  # 韩文兼容声母和韵母
+    hangul_syllables_range = (0xAC00, 0xD7AF)  # 韩文音节
+
+    # 检查字符串中的每个字符
+    for char in text:
+        # 获取字符的 Unicode 码点
+        code_point = ord(char)
+        # 检查字符是否在韩文字符范围内
+        if (
+            hangul_jamo_range[0] <= code_point <= hangul_jamo_range[1]
+            or hangul_compatibility_jamo_range[0] <= code_point <= hangul_compatibility_jamo_range[1]
+            or hangul_syllables_range[0] <= code_point <= hangul_syllables_range[1]
+        ):
+            return True
+    return False
+
 def contains_katakana(text: str) -> bool:
     # 日文字符范围
     katakana_range = (0x30A0, 0x30FF)

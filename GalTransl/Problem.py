@@ -3,7 +3,7 @@
 """
 from GalTransl.CSentense import CTransList
 from GalTransl.ConfigHelper import CProjectConfig, CProblemType
-from GalTransl.Utils import get_most_common_char, contains_japanese, contains_english,punctuation_zh
+from GalTransl.Utils import get_most_common_char, contains_japanese, contains_english,punctuation_zh,contains_korean
 from GalTransl.Dictionary import CGptDict
 
 def find_problems(
@@ -64,6 +64,9 @@ def find_problems(
                     elif chars in pre_jp:
                         if chars not in post_zh:
                             problem_list.append(f"本有{error}")
+
+            if contains_korean(pre_zh) and not contains_korean(pre_jp):
+                problem_list.append("本无韩文")
         if CProblemType.残留日文 in find_type:
             if contains_japanese(pre_zh):
                 problem_list.append("残留日文")
