@@ -325,6 +325,8 @@ class CGPT4Translate(BaseTranslate):
                     continue
 
             result_text = resp
+            if "</think>" in result_text:
+                result_text=result_text.split("</think>")[-1]
             if "```json" in result_text:
                 lang_list, code_list = extract_code_blocks(result_text)
                 if len(lang_list) > 0 and len(code_list) > 0:
@@ -598,6 +600,10 @@ class CGPT4Translate(BaseTranslate):
             frequency_penalty, presence_penalty = 0.3, 0.0
         elif style_name == "normal":
             pass
+
+        if "r1" in self.eng_type:
+            temperature, top_p = 0.6, 0.95
+            frequency_penalty, presence_penalty = 0.0, 0.0
 
         self.chatbot.temperature = temperature
         self.chatbot.top_p = top_p
