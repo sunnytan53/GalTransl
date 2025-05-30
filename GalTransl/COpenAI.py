@@ -75,6 +75,9 @@ class COpenAITokenPool:
         self.force_eng_name = config.getBackendConfigSection(section_name).get(
             "rewriteModelName", ""
         )
+        self.stream=config.getBackendConfigSection(section_name).get(
+            "stream", False
+        )
 
         if all_tokens := config.getBackendConfigSection(section_name).get("tokens"):
             for tokenEntry in all_tokens:
@@ -111,14 +114,20 @@ class COpenAITokenPool:
                 temperature=0.1,
                 max_tokens=100,
                 timeout=30,
+                stream=self.stream,
             )
-
-            if not response.choices[0].message.content:
-                # token not available, may token has been revoked
-                return False, token
+            if self.stream==False:
+                if len(response.choices) > 0:
+                    return True, token
+                else:
+                    return False, token
             else:
-
-                return True, token
+                for chunk in response:
+                    if len(chunk.choices) > 0:
+                        return True, token
+                    else:
+                        return False, token
+                    pass
         except Exception as e:
             LOGGER.error(e)
 
