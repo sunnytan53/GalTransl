@@ -135,6 +135,12 @@ class ForGalTranslate(BaseTranslate):
                     error_message = f"第{line_id}句空白"
                     error_flag = True
                     break
+                if "�" in line_dst:
+                    error_message = (
+                        f"第{line_id}句包含乱码：" + line_dst
+                    )
+                    error_flag = True
+                    break
 
                 if "Chinese" in self.target_lang:  # 统一简繁体
                     line_dst = self.opencc.convert(line_dst)
