@@ -179,9 +179,9 @@ def get_transCache_from_json(
                     no_proofread or "Fail" in cache_dict[cache_key]["proofread_by"]
                 ):  # 且未校对
                     translist_unhit.append(tran)
-                    LOGGER.debug(get_text("retry_failed", GT_LANG, line_now=line_now))
+                    LOGGER.debug(f"[cache]Failed translation: {line_now}")
                     if "rebuild" in eng_type:
-                        LOGGER.error(get_text("retry_failed", GT_LANG, line_now=line_now))
+                        LOGGER.error(f"[cache]Failed translation: {line_now}")
                     continue
 
             # retran_key在pre_jp中
