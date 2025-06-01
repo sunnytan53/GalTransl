@@ -111,6 +111,9 @@ def find_problems(
                     problem_list.append(f"本无 {key} 译有 {value}")
                 if key in pre_jp and value not in post_zh:
                     problem_list.append(f"本有 {key} 译无 {value}")
+        
+        if "Failed translation" in post_zh:
+            problem_list.append("翻译失败")
 
         if problem_list:
             tran.problem += ", ".join(problem_list)
