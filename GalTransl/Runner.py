@@ -170,7 +170,8 @@ async def run_galtransl(cfg: CProjectConfig, translator: str):
         if not proxyPool.proxies:
             raise Exception("没有可用的代理，请检查代理设置")
     if not proxyPool:
-        LOGGER.warning("不使用代理")
+        #LOGGER.warning("不使用代理")
+        pass
 
     # OpenAITokenPool初始化
     if any(x in translator for x in NEED_OpenAITokenPool):

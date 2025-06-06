@@ -414,6 +414,10 @@ class CGPT4Translate(BaseTranslate):
                 if "Chinese" in self.target_lang:  # 统一简繁体
                     line_json[key_name] = self.opencc.convert(line_json[key_name])
 
+                if "……" in trans_list[i].post_jp and "..." in line_json[key_name]:
+                    line_json[key_name] = line_json[key_name].replace("......", "……")
+                    line_json[key_name] = line_json[key_name].replace("...", "……")
+
                 if not proofread:
                     trans_list[i].pre_zh = line_json[key_name]
                     trans_list[i].post_zh = line_json[key_name]
