@@ -52,13 +52,23 @@ class ForNovelTranslate(BaseTranslate):
     async def translate(self, trans_list: CTransList, gptdict="", proofread=False):
         input_list = []
         tmp_enhance_jailbreak = False
+        n_symbol=""
         for i, trans in enumerate(trans_list):
             src_text = trans.post_jp
-            src_text = (
-                src_text.replace("\r\n", "\\n")
-                .replace("\t", "\\t")
-                .replace("\n", "\\n")
-            )
+            if "\\r\\n" in src_text:
+                n_symbol = "\\r\\n"
+            elif "\r\n" in src_text:
+                n_symbol = "\r\n"
+            elif "\\n" in src_text:
+                n_symbol = "\\n"
+            elif "\n" in src_text:
+                n_symbol = "\n"
+            
+            src_text = src_text.replace("\t", "[t]")
+            if n_symbol:
+                src_text = src_text.replace(n_symbol, "[e]")
+
+
             tmp_obj = f"{src_text}\t{trans.index}"
             input_list.append(tmp_obj)
         input_src = "\n".join(input_list)
@@ -78,7 +88,8 @@ class ForNovelTranslate(BaseTranslate):
             messages = []
             messages.append({"role": "system", "content": self.system_prompt})
             if self.last_translation:
-                messages.append({"role": "user", "content": "(……上轮翻译请求……)"})
+                self.last_translation=self.last_translation.replace("[e]","")
+                messages.append({"role": "user", "content": "(……truncated translation request……)"})
                 messages.append({"role": "assistant", "content": self.last_translation})
             messages.append({"role": "user", "content": prompt_req})
             if self.enhance_jailbreak:
@@ -164,15 +175,9 @@ class ForNovelTranslate(BaseTranslate):
                 if not line_dst.endswith("」") and trans_list[i].post_jp.endswith("」"):
                     line_dst = line_dst + "」"
 
-                if "\r\n" in trans_list[i].post_jp:
-                    line_dst = line_dst.replace("\\n", "\r\n")
-                if "\t" in trans_list[i].post_jp:
-                    line_dst = line_dst.replace("\\t", "\t")
-                if "\n" in trans_list[i].post_jp:
-                    line_dst = line_dst.replace("\\n", "\n")
-                if "……" in trans_list[i].post_jp and "..." in line_dst:
-                    line_dst = line_dst.replace("......", "……")
-                    line_dst = line_dst.replace("...", "……")
+                line_dst = line_dst.replace("[t]", "\t")
+                if n_symbol:
+                    line_dst = line_dst.replace("[e]", n_symbol)
 
                 trans_list[i].pre_zh = line_dst
                 trans_list[i].post_zh = line_dst
