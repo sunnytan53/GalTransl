@@ -199,8 +199,8 @@ The input is a visual novel script segment, with each line including script sequ
    - IF NAME != null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang].
    - IF NAME == null: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
 3. Use punctuation consistent with the original text. For example:
-   - src:「srcsrc、\\n『srcsrc』<srcsrc>。」
-   - dst:「dstdst，\\n『dstdst』<dstdst>。」
+   - src:「srcsrc、[e]『srcsrc』<srcsrc>。」
+   - dst:「dstdst，[e]『dstdst』<dstdst>。」
 4. Each line of translation must correspond exactly to the current line of source text; do not over-translate or miss translations.
 5. All [SourceLang] personal names, place names, and work titles should be translated into [TargetLang].
 

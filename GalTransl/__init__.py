@@ -65,7 +65,7 @@ TRANSLATOR_SUPPORTED = {
         "en": " （GPT/Claude/Deepseek）Customized template for Gal translation, faster and more efficient. Default model: deepseek-chat"
     },
     "ForNovel": {
-        "zh-cn": "（GPT/Claude/Deepseek）v6新模板，翻译轻小说等文本时使用，区别是不带name字段。默认deepseek-chat模型",
+        "zh-cn": "（GPT/Claude/Deepseek）v6新模板，翻译轻小说等其他文本时使用，区别是不带name字段。默认deepseek-chat模型",
         "en": " （GPT4/Claude-3/Deepseek-V3）Customized template for Novel translation, faster and more efficient. Default model: deepseek-chat"
     },
     "gpt4": {
