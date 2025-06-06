@@ -321,7 +321,7 @@ class ForGalTranslate(BaseTranslate):
                 current_tran = current_tran.prev_tran
                 continue
             speaker = current_tran.speaker if current_tran.speaker else "null"
-            tmp_obj = f"{current_tran.index}\t{speaker}\t{current_tran.pre_zh}"
+            tmp_obj = f"{speaker}\t{current_tran.pre_zh}\t{current_tran.index}"
             tmp_context.append(tmp_obj)
             num_count += 1
             if num_count >= num_pre_request:
@@ -330,7 +330,7 @@ class ForGalTranslate(BaseTranslate):
 
         tmp_context.reverse()
         json_lines = "\n".join(tmp_obj)
-        self.last_translation = "ID\tNAME\tDST\n" + json_lines
+        self.last_translation = "NAME\tDST\tID\n" + json_lines
         LOGGER.info("-> 恢复了上下文")
 
 
