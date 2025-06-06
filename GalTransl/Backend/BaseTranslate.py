@@ -159,7 +159,6 @@ class BaseTranslate:
                     max_tokens=max_tokens,
                     timeout=self.api_timeout,
                     top_p=top_p,
-                    reasoning_effort="low",
                 )
                 result = ""
                 lastline = ""
