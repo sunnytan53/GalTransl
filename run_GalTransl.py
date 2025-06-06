@@ -1,7 +1,8 @@
 import os
 import sys
 import argparse
-
+from InquirerPy import inquirer
+from InquirerPy.base.control import Choice
 # 基本配置，避免循环导入
 from GalTransl import (
     CONFIG_FILENAME,
@@ -10,6 +11,32 @@ from GalTransl import (
 )
 from GalTransl.i18n import get_text,GT_LANG
 
+class BulletMenu:
+    """
+    A CLI menu to select a choice from a list of choices using InquirerPy.
+    """
+
+    def __init__(self, prompt: str = None, choices: dict[str, str] = None):
+        self.prompt = prompt
+        self.choices = list(choices.keys())
+        self.descriptions = list(choices.values())
+
+    def run(self, default_choice: int = 0) -> str:
+        """Start the menu and return the selected choice"""
+
+        rsp = inquirer.select(
+            message=self.prompt,
+            choices=[
+                Choice(
+                    name=f"{choice:20}{self.descriptions[i]}",
+                    value=choice
+                ) for i, choice in enumerate(self.choices)
+            ],
+            instruction="↑↓ + Enter",
+            default=self.choices[default_choice] if self.choices else None
+        ).execute()
+
+        return rsp
 
 # Get input prompt based on language
 def get_input_prompt():
@@ -99,7 +126,6 @@ class ProjectManager:
         print(f"Contributors: {CONTRIBUTORS}\n")
 
     def choose_translator(self):
-        from command import BulletMenu
         
         default_choice_index = -1 # 默认不选中
         translator_keys = list(TRANSLATOR_SUPPORTED.keys())

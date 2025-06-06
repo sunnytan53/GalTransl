@@ -127,7 +127,9 @@ DEEPSEEK_TRANS_PROMPT = """## 任务
 2. 根据对象类型采用不同的翻译策略：
    - 如果对象包含`name`字段，作为对话处理：使用口语化表达，拟声词/语气词直接转换为[TargetLang]对应的单字表达
    - 如果没有`name`字段，作为旁白/独白处理：从角色视角进行翻译
-3. 保持原文中的转义字符和其他控制字符不变
+3. 保持原文中的转义字符和其他控制字符不变。For example:
+   - src:「srcsrc、\\n『srcsrc』<srcsrc>。」
+   - dst:「dstdst，\\n『dstdst』<dstdst>。」
 4. 译文必须与当前源对象的文本一一对应
 
 ## 输出格式
@@ -162,7 +164,9 @@ DEEPSEEK_PROOFREAD_PROMPT = """# 输入说明
    - 是否符合[TargetLang]的表达习惯
    - 上下文的连贯性
    - 专有名词的一致性
-4. 保持原文中的转义字符和其他控制字符不变
+4. 保持原文中的转义字符和其他控制字符不变。For example:
+   - src:「srcsrc、\\n『srcsrc』<srcsrc>。」
+   - dst:「dstdst，\\n『dstdst』<dstdst>。」
 
 # 输出格式
 输出以"```jsonline"开始，
