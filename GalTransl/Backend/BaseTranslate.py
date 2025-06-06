@@ -135,9 +135,9 @@ class BaseTranslate:
         prompt="",
         system="",
         messages=[],
-        temperature=0.5,
-        frequency_penalty=0.1,
-        top_p=1,
+        temperature=0.6,
+        frequency_penalty=0.0,
+        top_p=0.95,
         stream=None,
         max_tokens=None,
     ):
@@ -159,6 +159,7 @@ class BaseTranslate:
                     max_tokens=max_tokens,
                     timeout=self.api_timeout,
                     top_p=top_p,
+                    reasoning_effort="low",
                 )
                 result = ""
                 lastline = ""

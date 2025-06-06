@@ -43,20 +43,25 @@ class ForGalTranslate(BaseTranslate):
         self._set_temp_type("precise")
         self.init_chatbot(eng_type=eng_type, config=config)
         if "qwen3" in self.model_name.lower():
-            self.system_prompt+="/no_think"
-        if "gemini" in self.model_name.lower():
-            self.enhance_jailbreak = True
+            self.system_prompt += "/no_think"
+        # if "gemini" in self.model_name.lower():
+        #     self.enhance_jailbreak = True
 
         pass
 
     async def translate(self, trans_list: CTransList, gptdict="", proofread=False):
         input_list = []
+        tmp_enhance_jailbreak = False
         for i, trans in enumerate(trans_list):
             speaker = trans.speaker if trans.speaker else "null"
             speaker = speaker.replace("\r\n", "").replace("\t", "").replace("\n", "")
             src_text = trans.post_jp
-            src_text = src_text.replace("\r\n", "\\n").replace("\t", "\\t").replace("\n", "\\n")
-            tmp_obj = f"{trans.index}\t{speaker}\t{src_text}"
+            src_text = (
+                src_text.replace("\r\n", "\\n")
+                .replace("\t", "\\t")
+                .replace("\n", "\\n")
+            )
+            tmp_obj = f"{speaker}\t{src_text}\t{trans.index}"
             input_list.append(tmp_obj)
         input_src = "\n".join(input_list)
 
@@ -66,21 +71,21 @@ class ForGalTranslate(BaseTranslate):
         prompt_req = prompt_req.replace("[SourceLang]", self.source_lang)
         prompt_req = prompt_req.replace("[TargetLang]", self.target_lang)
 
-        if self.enhance_jailbreak:
-            assistant_prompt = "```\nID\tNAME\tDST"
-        else:
-            assistant_prompt = ""
-
-        messages = []
-        messages.append({"role": "system", "content": self.system_prompt})
-        if self.last_translation:
-            messages.append({"role": "user", "content": "(……上轮翻译请求……)"})
-            messages.append({"role": "assistant", "content": self.last_translation})
-        messages.append({"role": "user", "content": prompt_req})
-        if self.enhance_jailbreak:
-            messages.append({"role": "assistant", "content": assistant_prompt})
-
         while True:  # 一直循环，直到得到数据
+            if self.enhance_jailbreak or tmp_enhance_jailbreak:
+                assistant_prompt = "```NAME\tDST\tID\n"
+            else:
+                assistant_prompt = ""
+
+            messages = []
+            messages.append({"role": "system", "content": self.system_prompt})
+            if self.last_translation:
+                messages.append({"role": "user", "content": "(……上轮翻译请求……)"})
+                messages.append({"role": "assistant", "content": self.last_translation})
+            messages.append({"role": "user", "content": prompt_req})
+            if self.enhance_jailbreak:
+                messages.append({"role": "assistant", "content": assistant_prompt})
+
             if self.pj_config.active_workers == 1:
                 LOGGER.info(
                     f"->{'翻译输入' if not proofread else '校对输入'}：\n{gptdict}\n{input_src}\n"
@@ -95,7 +100,7 @@ class ForGalTranslate(BaseTranslate):
             )
 
             result_text = resp
-            result_text = result_text.split("ID\tNAME\tDST")[-1].strip()
+            result_text = result_text.split("NAME\tDST\tID")[-1].strip()
 
             i = -1
             result_trans_list = []
@@ -107,7 +112,7 @@ class ForGalTranslate(BaseTranslate):
                     continue
                 if line.strip() == "":
                     continue
-                if line.startswith("ID"):
+                if line.startswith("NAME"):
                     continue
 
                 line_sp = line.split("\t")
@@ -119,26 +124,24 @@ class ForGalTranslate(BaseTranslate):
                 i += 1
                 # 本行输出不正常
                 try:
-                    line_id = int(line_sp[0])
+                    line_id = line_sp[2]
                 except:
                     error_message = f"第{line}句id无法解析"
                     error_flag = True
                     break
-                if line_id != trans_list[i].index:
+                if str(trans_list[i].index) not in line_id:
                     error_message = f"输出{line_id}句id未对应"
                     error_flag = True
                     break
 
-                line_dst = line_sp[2]
+                line_dst = line_sp[1]
                 # 本行输出不应为空
                 if trans_list[i].post_jp != "" and line_dst == "":
                     error_message = f"第{line_id}句空白"
                     error_flag = True
                     break
                 if "�" in line_dst:
-                    error_message = (
-                        f"第{line_id}句包含乱码：" + line_dst
-                    )
+                    error_message = f"第{line_id}句包含乱码：" + line_dst
                     error_flag = True
                     break
 
@@ -183,8 +186,9 @@ class ForGalTranslate(BaseTranslate):
             if error_flag:
                 LOGGER.error(f"-> [解析错误]解析结果出错：{error_message}")
                 self.retry_count += 1
-                # 切换模式
-                self._set_temp_type("normal")
+
+                tmp_enhance_jailbreak = not tmp_enhance_jailbreak
+
                 # 2次重试则对半拆
                 if self.retry_count == 2 and len(trans_list) > 1:
                     self.retry_count -= 1
@@ -300,13 +304,9 @@ class ForGalTranslate(BaseTranslate):
         if self._current_temp_type == style_name:
             return
         self._current_temp_type = style_name
-        temperature = 0.8
-        frequency_penalty = 0.5
-        if style_name == "precise":
-            temperature = 0.4
-            frequency_penalty = 0.1
-        elif style_name == "normal":
-            pass
+        temperature = 0.6
+        frequency_penalty = 0.0
+
         self.temperature = temperature
         self.frequency_penalty = frequency_penalty
 
