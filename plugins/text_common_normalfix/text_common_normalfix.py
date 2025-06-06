@@ -79,7 +79,7 @@ class text_common_normalfix(GTextPlugin):
             
         if tran.post_jp[-1:] != "、" and tran.post_zh[-1:] == "，":
             tran.post_zh = tran.post_zh[:-1]
-        if tran.post_zh[-1]=="。" and tran.post_jp[-1] not in ".。":
+        if tran.post_zh[-1:]=="。" and tran.post_jp[-1:] not in ".。":
             tran.post_zh = tran.post_zh[:-1]
         return tran
 

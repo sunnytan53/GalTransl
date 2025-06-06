@@ -370,7 +370,7 @@ async def doLLMTranslSingleChunk(
                 try:
                     tran = plugin.plugin_object.before_dst_processed(tran)
                 except Exception as e:
-                    LOGGER.error(f" 插件 {plugin.name} 执行失败: {e}")
+                    LOGGER.error(f" 插件 {plugin.name} 执行失败: {e}", exc_info=True)
 
             tran.recover_dialogue_symbol()
             tran.post_zh = post_dic.do_replace(tran.post_zh, tran)
