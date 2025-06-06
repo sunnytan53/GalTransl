@@ -74,10 +74,13 @@ class text_common_normalfix(GTextPlugin):
             tran.post_zh = tran.post_zh[:-2]
         if tran.post_jp[-1:] == "♪" and tran.post_zh[-1:] != "♪":
             tran.post_zh += "♪"
-        if tran.post_jp[-1:] != "、" and tran.post_zh[-1:] == "，":
-            tran.post_zh = tran.post_zh[:-1]
         if tran.post_jp[-2:] == "！？" and tran.post_zh[-1:] == "！":
             tran.post_zh = tran.post_zh + "？"
+            
+        if tran.post_jp[-1:] != "、" and tran.post_zh[-1:] == "，":
+            tran.post_zh = tran.post_zh[:-1]
+        if tran.post_zh[-1]=="。" and tran.post_jp[-1] not in ".。":
+            tran.post_zh = tran.post_zh[:-1]
         return tran
 
     def _simple_fix_double_quotaion(self):
