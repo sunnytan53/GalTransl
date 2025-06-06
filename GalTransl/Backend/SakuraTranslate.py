@@ -81,6 +81,7 @@ class CSakuraTranslate(BaseTranslate):
         model_name = config.getBackendConfigSection(section_name).get(
             "rewriteModelName"
         )
+        self.apiErrorWait = 0
         self.model_name = model_name if model_name else "sakura"
 
         endpoint = self.endpoint
