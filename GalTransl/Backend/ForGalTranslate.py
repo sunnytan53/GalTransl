@@ -90,6 +90,7 @@ class ForGalTranslate(BaseTranslate):
             messages = []
             messages.append({"role": "system", "content": self.system_prompt})
             if self.last_translation:
+                self.last_translation=self.last_translation.replace("[e]","")
                 messages.append({"role": "user", "content": "(……上轮翻译请求……)"})
                 messages.append({"role": "assistant", "content": self.last_translation})
             messages.append({"role": "user", "content": prompt_req})
