@@ -334,7 +334,7 @@ class ForNovelTranslate(BaseTranslate):
         tmp_context.reverse()
         json_lines = "\n".join(tmp_obj)
         self.last_translation = "DST\tID\n" + json_lines
-        LOGGER.info("-> 恢复了上下文")
+        #LOGGER.info("-> 恢复了上下文")
 
 
 if __name__ == "__main__":

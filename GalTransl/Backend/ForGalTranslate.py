@@ -122,7 +122,7 @@ class ForGalTranslate(BaseTranslate):
             if result_text == "":
                 error_message = "输出为空"
                 error_flag = True
-                
+
             for line in result_lines:
                 if "```" in line:
                     continue
@@ -345,7 +345,7 @@ class ForGalTranslate(BaseTranslate):
         tmp_context.reverse()
         json_lines = "\n".join(tmp_obj)
         self.last_translation = "NAME\tDST\tID\n" + json_lines
-        LOGGER.info("-> 恢复了上下文")
+        #LOGGER.info("-> 恢复了上下文")
 
 
 if __name__ == "__main__":

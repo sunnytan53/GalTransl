@@ -39,7 +39,7 @@ class BaseTranslate:
         self.pj_config = config
         self.eng_type = eng_type
         self.last_file_name = ""
-        self.restore_context_mode = config.getKey("gpt.restoreContextMode")
+        self.restore_context_mode = config.getKey("gpt.restoreContextMode",True)
         self.retry_count = 0
         # 保存间隔
         if val := config.getKey("save_steps"):
