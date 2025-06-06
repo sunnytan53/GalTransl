@@ -164,6 +164,8 @@ class BaseTranslate:
                 lastline = ""
                 if stream:
                     async for chunk in response:
+                        if not chunk.choices:
+                            continue
                         if hasattr(chunk.choices[0].delta, "reasoning_content"):
                             lastline+=chunk.choices[0].delta.reasoning_content or ""
                         result += chunk.choices[0].delta.content or ""
@@ -176,6 +178,9 @@ class BaseTranslate:
                     result = response.choices[0].message.content
                 return result
             except Exception as e:
+                # gemini no_candidates
+                if "no_candidates" in str(e):
+                    return ""
 
                 api_try_count += 1
                 if self.apiErrorWait > 0:

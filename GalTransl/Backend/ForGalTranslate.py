@@ -118,6 +118,11 @@ class ForGalTranslate(BaseTranslate):
             result_lines = result_text.splitlines()
             error_flag = False
             error_message = ""
+
+            if result_text == "":
+                error_message = "输出为空"
+                error_flag = True
+                
             for line in result_lines:
                 if "```" in line:
                     continue
