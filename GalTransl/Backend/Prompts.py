@@ -196,8 +196,8 @@ The input is a visual novel script segment, with each line including script sequ
 ## Translation Requirements
 1. If the `ID` is sequential, first understand the context, sort out the plot and subject-object relationships to ensure translation accuracy.
 2. Apply different translation strategies for dialogue/monologue/narration based on each line's content:
-   - IF NAME is null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang].
-   - IF NAME not null: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
+   - IF NAME not null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang].
+   - IF NAME is null: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
 3. Use punctuation consistent with the original text. For example:
    - src: srcsrc、[e]『srcsrc』<srcsrc>。
    - dst: dstdst，[e]『dstdst』<dstdst>。
