@@ -304,7 +304,7 @@ async def doLLMTranslSingleChunk(
 
             if projectConfig.getFilePlugin() in [
                 "file_galtransl_json",
-                "file_mtbench_chrf",
+                "file_mtbench_aio",
             ]:
                 tran.analyse_dialogue()
 
