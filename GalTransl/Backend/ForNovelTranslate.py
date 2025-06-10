@@ -337,7 +337,7 @@ class ForNovelTranslate(BaseTranslate):
             current_tran = current_tran.prev_tran
 
         tmp_context.reverse()
-        json_lines = "\n".join(tmp_obj)
+        json_lines = "\n".join(tmp_context)
         self.last_translation = "DST\tID\n" + json_lines
         #LOGGER.info("-> 恢复了上下文")
 

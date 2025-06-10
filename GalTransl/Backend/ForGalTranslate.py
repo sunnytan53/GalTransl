@@ -343,7 +343,7 @@ class ForGalTranslate(BaseTranslate):
             current_tran = current_tran.prev_tran
 
         tmp_context.reverse()
-        json_lines = "\n".join(tmp_obj)
+        json_lines = "\n".join(tmp_context)
         self.last_translation = "NAME\tDST\tID\n" + json_lines
         #LOGGER.info("-> 恢复了上下文")
 
