@@ -51,7 +51,7 @@ PROGRAM_SPLASH4 = r"""
 ALL_BANNERS = [PROGRAM_SPLASH1, PROGRAM_SPLASH2, PROGRAM_SPLASH3, PROGRAM_SPLASH4]
 PROGRAM_SPLASH = ALL_BANNERS[localtime().tm_mday % 4]
 
-GALTRANSL_VERSION = "6.4.1"
+GALTRANSL_VERSION = "6.5.0"
 AUTHOR = "xd2333"
 CONTRIBUTORS = "ryank231231, PiDanShouRouZhouXD, Noriverwater, Isotr0py, adsf0427, pipixia244, gulaodeng, sakura-umi, lifegpc, natsumerinchan, szyzbg"
 
@@ -66,7 +66,7 @@ TRANSLATOR_SUPPORTED = {
     },
     "ForGal-json": {
         "zh-cn": "(OAI/Claude/Deepseek)(原GPT4)，翻译GaL时使用，json格式输入，默认gpt-4模型",
-        "en": "(OAI/Claude/Deepseek) General translation template for smarter models. Default model: gpt-4"
+        "en": "(OAI/Claude/Deepseek)(original gpt4) Customized template for Gal translation, json input. Default model: gpt-4"
     },
     "ForNovel": {
         "zh-cn": "(OAI/Claude/Deepseek)v6新模板，翻译轻小说等其他文本时使用，区别是不带name字段。默认deepseek-chat模型",

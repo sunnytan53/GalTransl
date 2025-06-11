@@ -6,7 +6,7 @@ backendSpecific:
         endpoint: https://api.openai.com # 请求地址，使用转发或第三方API时修改，加不加/v1都行
     rewriteModelName: "" # 设置自定义的模型名称，用于调用Claude/Deepseek等模型
     checkAvailable: true # 翻译前检查API是否可用
-    stream: true # 流式请求(GPT4/r1不生效)
+    stream: true # 流式请求
     apiTimeout: 60 # 请求超时时间，单位秒
     apiErrorWait: auto # 发生API Error时的等待时间，包括频率限制。auto将自动适应[auto/0-120]
 
@@ -51,8 +51,8 @@ common:
     #- "项目GPT字典" # LLM没有按GPT字典要求翻译
   # ForGal/ForGal-json/ForNovel/r1
   gpt.enhance_jailbreak: False # 改善拒答[True/False]
-  gpt.change_prompt: "no" # (GPT-4/r1)是否开启修改默认prompt,"AdditionalPrompt"为增加额外要求，"OverwritePrompt"为覆写原本的prompt
-  gpt.prompt_content: "翻译结果使用文言文" # 示例额外要求，change_prompt为AdditionalPrompt时才生效
+  gpt.change_prompt: "no" # 是否开启修改默认prompt,"AdditionalPrompt"为增加额外要求，"OverwritePrompt"为覆写原本的prompt
+  gpt.prompt_content: "翻译结果使用文言文" # 示例额外要求，change_prompt为AdditionalPrompt/OverwritePrompt时才生效
   # Sakura/GalTransl
   gpt.token_limit: 0 # (Sakura/Galtransl-7b)（实验性）大于0时限制每轮请求的token数量。防止爆context时可以设置为llama.cpp -c的数值除2。
   # 调试日志
