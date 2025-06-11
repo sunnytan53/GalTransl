@@ -103,7 +103,7 @@ class BaseTranslate:
             "rewriteModelName", TRANSLATOR_DEFAULT_ENGINE[eng_type]
         )
         self.token = self.tokenProvider.getToken()
-        base_path = "/v1" if not re.search(r"/v\d+$", self.token.domain) else ""
+        base_path = "/v1" if not re.search(r"/v\d+", self.token.domain) else ""
         self.api_timeout = config.getBackendConfigSection(section_name).get(
             "apiTimeout", 60
         )
