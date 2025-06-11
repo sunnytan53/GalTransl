@@ -1,6 +1,7 @@
 import json, time, asyncio, os, traceback, re
 from opencc import OpenCC
 from typing import Optional
+
 from GalTransl.COpenAI import COpenAITokenPool
 from GalTransl.ConfigHelper import CProxyPool
 from GalTransl import LOGGER, LANG_SUPPORTED, TRANSLATOR_DEFAULT_ENGINE
@@ -39,7 +40,7 @@ class ForGalTranslate(BaseTranslate):
             self.enhance_jailbreak = False
         self.trans_prompt = FORGAL_TRANS_PROMPT_EN
         self.system_prompt = FORGAL_SYSTEM
-        self.last_translation = ""
+        self.last_translations = {}
         self.init_chatbot(eng_type=eng_type, config=config)
         self._set_temp_type("precise")
         if "qwen3" in self.model_name.lower():
@@ -49,10 +50,18 @@ class ForGalTranslate(BaseTranslate):
 
         pass
 
-    async def translate(self, trans_list: CTransList, gptdict="", proofread=False):
+    async def translate(self, trans_list: CTransList, gptdict="", proofread=False,filename=""):
         input_list = []
         tmp_enhance_jailbreak = False
         n_symbol=""
+        start_idx=trans_list[0].index
+        end_idx=trans_list[-1].index
+        idx_tip=""
+        if start_idx!=end_idx:
+            idx_tip=f"{start_idx}~{end_idx}"
+        else:
+            idx_tip=start_idx
+
         for i, trans in enumerate(trans_list):
             speaker = trans.speaker if trans.speaker else "null"
             speaker = speaker.replace("\r\n", "").replace("\t", "").replace("\n", "")
@@ -81,6 +90,7 @@ class ForGalTranslate(BaseTranslate):
         prompt_req = prompt_req.replace("[SourceLang]", self.source_lang)
         prompt_req = prompt_req.replace("[TargetLang]", self.target_lang)
 
+        retry_count=0
         while True:  # 一直循环，直到得到数据
             if self.enhance_jailbreak or tmp_enhance_jailbreak:
                 assistant_prompt = "```NAME\tDST\tID\n"
@@ -89,10 +99,10 @@ class ForGalTranslate(BaseTranslate):
 
             messages = []
             messages.append({"role": "system", "content": self.system_prompt})
-            if self.last_translation:
-                self.last_translation=self.last_translation.replace("[e]","")
+            if filename in self.last_translations and self.last_translations[filename] != "":
+                self.last_translations[filename]=self.last_translations[filename].replace("[e]","")
                 messages.append({"role": "user", "content": "(……truncated translation request……)"})
-                messages.append({"role": "assistant", "content": self.last_translation})
+                messages.append({"role": "assistant", "content": self.last_translations[filename]})
             messages.append({"role": "user", "content": prompt_req})
             if self.enhance_jailbreak:
                 messages.append({"role": "assistant", "content": assistant_prompt})
@@ -108,6 +118,7 @@ class ForGalTranslate(BaseTranslate):
                 messages=messages,
                 temperature=self.temperature,
                 frequency_penalty=self.frequency_penalty,
+                file_name=f"{filename}:{idx_tip}",
             )
 
             result_text = resp or ""
@@ -198,27 +209,28 @@ class ForGalTranslate(BaseTranslate):
                     break
 
             if error_flag:
-                LOGGER.error(f"-> [解析错误]解析结果出错：{error_message}")
-                self.retry_count += 1
+
+                LOGGER.error(f"[解析错误][{filename}:{idx_tip}]解析结果出错：{error_message}")
+                retry_count += 1
                 await asyncio.sleep(1)
 
                 tmp_enhance_jailbreak = not tmp_enhance_jailbreak
 
                 # 2次重试则对半拆
-                if self.retry_count == 2 and len(trans_list) > 1:
-                    self.retry_count -= 1
-                    LOGGER.warning("-> 仍然出错，拆分重试")
+                if retry_count == 2 and len(trans_list) > 1:
+                    retry_count -= 1
+                    LOGGER.warning(f"[解析错误][{filename}:{idx_tip}]仍然出错，拆分重试")
                     return await self.translate(
-                        trans_list[: len(trans_list) // 2], gptdict
+                        trans_list[: len(trans_list) // 2], gptdict,proofread=proofread,filename=filename
                     )
                 # 单句重试仍错则重置会话
-                if self.retry_count == 3:
-                    self.reset_conversation()
-                    LOGGER.warning("-> 单句仍错，重置会话")
+                if retry_count == 3:
+                    self.last_translations[filename] = ""
+                    LOGGER.warning(f"[解析错误][{filename}:{idx_tip}]单句仍错，重置会话")
                 # 重试中止
-                if self.retry_count >= 4:
-                    self.reset_conversation()
-                    LOGGER.error("-> [解析错误]解析反复出错，跳过本轮翻译")
+                if retry_count >= 4:
+                    self.last_translations[filename] = ""
+                    LOGGER.error(f"[解析错误][{filename}:{idx_tip}]解析反复出错，跳过本轮翻译")
                     i = 0 if i < 0 else i
                     while i < len(trans_list):
                         if not proofread:
@@ -237,9 +249,7 @@ class ForGalTranslate(BaseTranslate):
                 continue
 
             # 翻译完成，收尾
-            self._set_temp_type("precise")
-            self.retry_count = 0
-            self.last_translation = resp
+            self.last_translations[filename] = resp
             break
         return i + 1, result_trans_list
 
@@ -265,15 +275,14 @@ class ForGalTranslate(BaseTranslate):
                 if not any(word in tran.post_jp for word in H_WORDS_LIST)
             ]
 
-        # 新文件重置chatbot
-        if self.last_file_name != filename:
-            self.reset_conversation()
-            self.last_file_name = filename
-            # LOGGER.info(f"-> 开始翻译文件：{filename}")
+
+        if filename not in self.last_translations:
+            self.last_translations[filename]=""
+
         i = 0
 
         if self.restore_context_mode and not proofread:
-            self.restore_context(translist_unhit, num_pre_request)
+            self.restore_context(translist_unhit, num_pre_request,filename)
 
         trans_result_list = []
         len_trans_list = len(translist_unhit)
@@ -290,7 +299,7 @@ class ForGalTranslate(BaseTranslate):
             dic_prompt = gpt_dic.gen_prompt(trans_list_split, "tsv") if gpt_dic else ""
 
             num, trans_result = await self.translate(
-                trans_list_split, dic_prompt, proofread=proofread
+                trans_list_split, dic_prompt, proofread=proofread,filename=filename
             )
 
             if num > 0:
@@ -315,7 +324,7 @@ class ForGalTranslate(BaseTranslate):
     def reset_conversation(self):
         self.last_translation = ""
 
-    def restore_context(self, translist_unhit: CTransList, num_pre_request: int):
+    def restore_context(self, translist_unhit: CTransList, num_pre_request: int,filename=""):
         if translist_unhit[0].prev_tran == None:
             return
         tmp_context = []
@@ -335,7 +344,7 @@ class ForGalTranslate(BaseTranslate):
 
         tmp_context.reverse()
         json_lines = "\n".join(tmp_context)
-        self.last_translation = "NAME\tDST\tID\n" + json_lines
+        self.last_translations[filename] = "NAME\tDST\tID\n" + json_lines
         #LOGGER.info("-> 恢复了上下文")
 
 

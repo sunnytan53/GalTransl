@@ -336,7 +336,7 @@ async def doLLMTranslSingleChunk(
         if len(translist_unhit) > 0:
             # 执行翻译
             await gptapi.batch_translate(
-                file_name,
+                file_name + (f"_{file_index}" if total_splits > 1 else ""),
                 cache_file_path,
                 split_chunk.trans_list,
                 projectConfig.getKey("gpt.numPerRequestTranslate"),

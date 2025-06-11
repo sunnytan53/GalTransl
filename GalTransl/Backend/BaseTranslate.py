@@ -142,7 +142,8 @@ class BaseTranslate:
         top_p=0.95,
         stream=None,
         max_tokens=None,
-        reasoning_effort=NOT_GIVEN
+        reasoning_effort=NOT_GIVEN,
+        file_name="",
     ):
         api_try_count = 0
         stream=stream if stream else self.stream
@@ -202,12 +203,14 @@ class BaseTranslate:
                         "-> 检测到频率限制(429 RateLimitError)，翻译仍在进行中但速度将受影响..."
                     )
                 else:
+                    if file_name!="":
+                        file_name=f"[{file_name}]"
                     try:
                         LOGGER.error(
-                            f"[API Error] {response.model_extra['error']}, sleeping {sleep_time}s"
+                            f"[API Error]{file_name} {response.model_extra['error']}, sleeping {sleep_time}s"
                         )
                     except:
-                        LOGGER.error(f"[API Error] {e}, sleeping {sleep_time}s")
+                        LOGGER.error(f"[API Error]{file_name} {e}, sleeping {sleep_time}s")
 
                 await asyncio.sleep(sleep_time)
 

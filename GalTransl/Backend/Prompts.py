@@ -191,7 +191,7 @@ FORGAL_TRANS_PROMPT_EN = """## Task
 Fluently translate input to [TargetLang] using the provided glossary, correctly using pronouns based on context. Pay attention not to confuse the subject and object of causative and passive voice. Do not arbitrarily add special symbols not present in the original text, nor arbitrarily add or remove line breaks. Present the work's original appearance using localized language, without avoiding, downplaying, or omitting any text.
 
 ## Background
-The input is a visual novel script segment, with each line including script sequence number, name, and original text, presented in TSV format with Tab-separated elements.
+The input is a visual novel script segment, with each line including name,souce-text,sequence-number, presented in TSV format with Tab-separated elements.
 
 ## Translation Requirements
 1. If the `ID` is sequential, first understand the context, sort out the plot and subject-object relationships to ensure translation accuracy.
