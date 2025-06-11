@@ -466,30 +466,24 @@ async def init_gptapi(
     match eng_type:
         case "ForGal":
             from GalTransl.Backend.ForGalTranslate import ForGalTranslate
-
             return ForGalTranslate(projectConfig, eng_type, proxyPool, tokenPool)
         case "ForNovel":
             from GalTransl.Backend.ForNovelTranslate import ForNovelTranslate
-
             return ForNovelTranslate(projectConfig, eng_type, proxyPool, tokenPool)
-        case "gpt4" | "gpt4-turbo" | "r1":
-            from GalTransl.Backend.GPT4Translate import CGPT4Translate
-
-            return CGPT4Translate(projectConfig, eng_type, proxyPool, tokenPool)
-        case "sakura-009" | "sakura-v1.0" | "galtransl-v2.5" | "galtransl-v3":
+        case "ForGal-json" | "r1":
+            from GalTransl.Backend.GPT4TranslateNew import GPT4TranslateNew
+            return GPT4TranslateNew(projectConfig, eng_type, proxyPool, tokenPool)
+        case "sakura-v1.0" | "galtransl-v3":
             from GalTransl.Backend.SakuraTranslate import CSakuraTranslate
-
             sakura_endpoint = await sakuraEndpointQueue.get()
             if sakuraEndpointQueue is None:
                 raise ValueError(f"Endpoint is required for engine type {eng_type}")
             return CSakuraTranslate(projectConfig, eng_type, sakura_endpoint, proxyPool)
         case "rebuildr" | "rebuilda" | "dump-name":
             from GalTransl.Backend.RebuildTranslate import CRebuildTranslate
-
             return CRebuildTranslate(projectConfig, eng_type)
         case "GenDic":
             from GalTransl.Backend.GenDic import GenDic
-
             return GenDic(projectConfig, eng_type, proxyPool, tokenPool)
         case _:
             raise ValueError(f"不支持的翻译引擎类型 {eng_type}")

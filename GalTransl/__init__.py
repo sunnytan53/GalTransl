@@ -61,28 +61,28 @@ OUTPUT_FOLDERNAME = "gt_output"
 CACHE_FOLDERNAME = "transl_cache"
 TRANSLATOR_SUPPORTED = {
     "ForGal": {
-        "zh-cn": "（GPT/Claude/Deepseek）v6新模板，翻译GaL时使用。默认deepseek-chat模型",
-        "en": " （GPT/Claude/Deepseek）Customized template for Gal translation, faster and more efficient. Default model: deepseek-chat"
+        "zh-cn": "(OAI/Claude/Deepseek)v6新模板，翻译GaL时使用。默认deepseek-chat模型",
+        "en": " (OAI/Claude/Deepseek)Customized template for Gal translation, faster and more efficient. Default model: deepseek-chat"
+    },
+    "ForGal-json": {
+        "zh-cn": "(OAI/Claude/Deepseek)(原GPT4)，翻译GaL时使用，json格式输入，默认gpt-4模型",
+        "en": "(OAI/Claude/Deepseek) General translation template for smarter models. Default model: gpt-4"
     },
     "ForNovel": {
-        "zh-cn": "（GPT/Claude/Deepseek）v6新模板，翻译轻小说等其他文本时使用，区别是不带name字段。默认deepseek-chat模型",
-        "en": " （GPT4/Claude-3/Deepseek-V3）Customized template for Novel translation, faster and more efficient. Default model: deepseek-chat"
-    },
-    "gpt4": {
-        "zh-cn": "（GPT4/Claude-3/Deepseek-V3）比较聪明的模型通用的翻译模板，默认gpt-4模型",
-        "en": "(GPT4/Claude-3/Deepseek-V3) General translation template for smarter models. Default model: gpt-4"
+        "zh-cn": "(OAI/Claude/Deepseek)v6新模板，翻译轻小说等其他文本时使用，区别是不带name字段。默认deepseek-chat模型",
+        "en": " (OAI/Claude/Deepseek)Customized template for Novel translation, faster and more efficient. Default model: deepseek-chat"
     },
     "r1": {
         "zh-cn": "Deepseek-R1模型专用翻译模板，默认deepseek-reasoner模型",
         "en": "Specialized translation template for Deepseek-R1 model. Default model: deepseek-reasoner"
     },
     "sakura-v1.0": {
-        "zh-cn": "（适用v1.0版sakura）为翻译轻小说/Gal开展大规模训练的本地模型，具有多个型号和大小",
+        "zh-cn": "（适用sakura-v1.0）为翻译轻小说/Gal开展大规模训练的本地模型，具有多个型号和大小",
         "en": "(For v1.0 prompt) Locally trained model for light novel/Gal translation, available in multiple sizes"
     },
     "galtransl-v3": {
         "zh-cn": "为翻译Gal基于Sakura进一步优化的本地模型",
-        "en": "Further optimized local small model based on Sakura for Gal translation, can run on gaming GPUs with 6GB VRAM and MacBooks"
+        "en": "Further optimized local small model based on Sakura for Gal translation"
     },
     "GenDic": {
         "zh-cn": "自动化构建GPT字典，需要接大模型如Deepseek-V3",
@@ -108,13 +108,13 @@ TRANSLATOR_SUPPORTED = {
 TRANSLATOR_DEFAULT_ENGINE = {
     "ForGal": "deepseek-chat",
     "ForNovel": "deepseek-chat",
-    "gpt4": "gpt-4",
+    "ForGal-json": "gpt-4",
     "r1": "deepseek-reasoner",
     "sakura-v1.0": "sakura-7b-qwen2.5-v1.0",
     "galtransl-v3": "Sakura-GalTransl-7B-v3",
     "GenDic": "deepseek-chat",
 }
-NEED_OpenAITokenPool=["gpt", "r1", "ForGal","ForNovel","GenDic"]
+NEED_OpenAITokenPool=["ForGal-json", "r1", "ForGal","ForNovel","GenDic"]
 LANG_SUPPORTED = {
     "zh-cn": "Simplified_Chinese",
     "zh-tw": "Traditional_Chinese",

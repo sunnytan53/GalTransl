@@ -1,0 +1,403 @@
+import json, time, asyncio, os, traceback, re
+from opencc import OpenCC
+from typing import Optional
+
+from GalTransl.COpenAI import COpenAITokenPool
+from GalTransl.ConfigHelper import CProxyPool
+from GalTransl import LOGGER, LANG_SUPPORTED, TRANSLATOR_DEFAULT_ENGINE
+from GalTransl.i18n import get_text, GT_LANG
+from sys import exit, stdout
+from GalTransl.ConfigHelper import (
+    CProjectConfig,
+)
+from random import choice
+from GalTransl.CSentense import CSentense, CTransList
+from GalTransl.Cache import save_transCache_to_json
+from GalTransl.Dictionary import CGptDict
+from GalTransl.Utils import extract_code_blocks, fix_quotes
+from GalTransl.Backend.Prompts import (
+    NAME_PROMPT4,
+    NAME_PROMPT4_R1,
+    GPT4_SYSTEM_PROMPT,
+    GPT4_TRANS_PROMPT,
+    GPT4_CONF_PROMPT,
+    H_WORDS_LIST,
+    DEEPSEEK_SYSTEM_PROMPT,
+    DEEPSEEK_TRANS_PROMPT,
+    DEEPSEEK_PROOFREAD_PROMPT,
+)
+from GalTransl.Backend.BaseTranslate import BaseTranslate
+from openai._types import NOT_GIVEN
+
+class GPT4TranslateNew(BaseTranslate):
+    # init
+    def __init__(
+        self,
+        config: CProjectConfig,
+        eng_type: str,
+        proxy_pool: Optional[CProxyPool],
+        token_pool: COpenAITokenPool,
+    ):
+        super().__init__(config, eng_type, proxy_pool, token_pool)
+        # enhance_jailbreak
+        if val := config.getKey("gpt.enhance_jailbreak"):
+            self.enhance_jailbreak = val
+        else:
+            self.enhance_jailbreak = False
+
+        self.last_translations = {}
+        self.init_chatbot(eng_type=eng_type, config=config)
+        self._set_temp_type("precise")
+        self.trans_prompt = GPT4_TRANS_PROMPT
+        self.system_prompt = GPT4_SYSTEM_PROMPT
+        if "r1" in eng_type:
+            self.trans_prompt = DEEPSEEK_TRANS_PROMPT
+            self.system_prompt = DEEPSEEK_SYSTEM_PROMPT
+        if "qwen3" in self.model_name.lower():
+            self.system_prompt += "/no_think"
+        # if "gemini" in self.model_name.lower():
+        #     self.enhance_jailbreak = True
+
+        pass
+
+    async def translate(self, trans_list: CTransList, gptdict="", proofread=False,filename=""):
+        input_list = []
+        tmp_enhance_jailbreak = False
+        n_symbol=""
+        start_idx=trans_list[0].index
+        end_idx=trans_list[-1].index
+        idx_tip=""
+        if start_idx!=end_idx:
+            idx_tip=f"{start_idx}~{end_idx}"
+        else:
+            idx_tip=start_idx
+
+        for i, trans in enumerate(trans_list):
+            speaker = trans.speaker if trans.speaker else "null"
+            speaker = speaker.replace("\r\n", "").replace("\t", "").replace("\n", "")
+            src_text = trans.post_jp
+
+            if "\\r\\n" in src_text:
+                n_symbol = "\\r\\n"
+            elif "\r\n" in src_text:
+                n_symbol = "\r\n"
+            elif "\\n" in src_text:
+                n_symbol = "\\n"
+            elif "\n" in src_text:
+                n_symbol = "\n"
+            
+            src_text = src_text.replace("\t", "[t]")
+            if n_symbol:
+                src_text = src_text.replace(n_symbol, "[e]")
+            
+            if not proofread:
+                tmp_obj = {
+                    "id": trans.index,
+                    "name": trans.speaker,
+                    "src": trans.post_jp,
+                }
+            else:
+                tmp_obj = {
+                    "id": trans.index,
+                    "name": trans.speaker,
+                    "src": trans.post_jp,
+                    "dst": (
+                        trans.pre_zh if trans.proofread_zh == "" else trans.proofread_zh
+                    ),
+                }
+
+            if trans.speaker == "":
+                del tmp_obj["name"]
+
+            input_list.append(json.dumps(tmp_obj, ensure_ascii=False))
+        input_src = "\n".join(input_list)
+
+
+        prompt_req = self.trans_prompt
+        prompt_req = prompt_req.replace("[Input]", input_src)
+        prompt_req = prompt_req.replace("[Glossary]", gptdict)
+        prompt_req = prompt_req.replace("[SourceLang]", self.source_lang)
+        prompt_req = prompt_req.replace("[TargetLang]", self.target_lang)
+
+        retry_count=0
+        while True:  # 一直循环，直到得到数据
+            if self.enhance_jailbreak or tmp_enhance_jailbreak:
+                assistant_prompt = "```jsonline"
+            else:
+                assistant_prompt = ""
+
+            messages = []
+            messages.append({"role": "system", "content": self.system_prompt})
+            if filename in self.last_translations and self.last_translations[filename] != "":
+                self.last_translations[filename]=self.last_translations[filename].replace("[e]","")
+                messages.append({"role": "user", "content": "(……truncated translation request……)"})
+                messages.append({"role": "assistant", "content": self.last_translations[filename]})
+            messages.append({"role": "user", "content": prompt_req})
+            if self.enhance_jailbreak:
+                messages.append({"role": "assistant", "content": assistant_prompt})
+
+            if self.pj_config.active_workers == 1:
+                LOGGER.info(
+                    f"->{'翻译输入' if not proofread else '校对输入'}：\n{gptdict}\n{input_src}\n"
+                )
+                LOGGER.info("->输出：")
+            resp = None
+            resp = await self.ask_chatbot(
+                model_name=self.model_name,
+                messages=messages,
+                temperature=self.temperature,
+                frequency_penalty=self.frequency_penalty,
+                file_name=f"{filename}:{idx_tip}",
+            )
+
+            result_text = resp or ""
+
+            if "</think>" in result_text:
+                result_text=result_text.split("</think>")[-1]
+            if "```json" in result_text:
+                lang_list, code_list = extract_code_blocks(result_text)
+                if len(lang_list) > 0 and len(code_list) > 0:
+                    result_text = code_list[0]
+            if '{"id' in result_text:
+                result_text = result_text[result_text.find('{"id') :]
+            result_text = fix_quotes(result_text)
+
+            i = -1
+            result_trans_list = []
+            result_lines = result_text.splitlines()
+            error_flag = False
+            error_message = ""
+            key_name = "dst" if not proofread else "newdst"
+
+            if result_text == "":
+                error_message = "输出为空"
+                error_flag = True
+
+            for line in result_lines:
+                try:
+                    line_json = json.loads(line)  # 尝试解析json
+                except:
+                    if i == -1:
+                        error_message = f"无法解析行：{line}"
+                        error_flag = True
+                        break
+                    else:
+                        break
+
+                i += 1
+                # 本行输出不正常
+                if (
+                    isinstance(line_json, dict) == False
+                    or "id" not in line_json
+                    or type(line_json["id"]) != int
+                    or i > len(trans_list) - 1
+                ):
+                    error_message = f"{line}句无法解析"
+                    error_flag = True
+                    break
+
+                line_id = line_json["id"]
+                if line_id != trans_list[i].index:
+                    error_message = f"输出{line_id}句id未对应"
+                    error_flag = True
+                    break
+
+                if key_name not in line_json or type(line_json[key_name]) != str:
+                    error_message = f"第{trans_list[i].index}句找不到{key_name}"
+                    error_flag = True
+                    break
+
+                line_dst = line_json[key_name]
+
+                # 本行输出不应为空
+                if trans_list[i].post_jp != "" and line_dst == "":
+                    error_message = f"第{line_id}句空白"
+                    error_flag = True
+                    break
+
+                # 针对混元模型的乱码问题
+                if "�" in line_dst:
+                    error_message = (
+                        f"第{line_id}句包含乱码：" + line_dst
+                    )
+                    error_flag = True
+                    break
+
+                if "Chinese" in self.target_lang:  # 统一简繁体
+                    line_dst = self.opencc.convert(line_dst)
+
+                if (
+                    "”" not in trans_list[i].post_jp
+                    and '"' not in trans_list[i].post_jp
+                ):
+                    line_dst = line_dst.replace('"', "")
+                elif '"' not in trans_list[i].post_jp and '"' in line_dst:
+                    line_dst = fix_quotes2(line_dst)
+                elif '"' in trans_list[i].post_jp and "”" in line_dst:
+                    line_dst = line_dst.replace("“", '"')
+                    line_dst = line_dst.replace("”", '"')
+
+                if not line_dst.startswith("「") and trans_list[i].post_jp.startswith(
+                    "「"
+                ):
+                    line_dst = "「" + line_dst
+                if not line_dst.endswith("」") and trans_list[i].post_jp.endswith("」"):
+                    line_dst = line_dst + "」"
+
+                line_dst = line_dst.replace("[t]", "\t")
+                if n_symbol:
+                    line_dst = line_dst.replace("[e]", n_symbol)
+
+                if "……" in trans_list[i].post_jp and "..." in line_dst:
+                    line_dst = line_dst.replace("......", "……")
+                    line_dst = line_dst.replace("...", "……")
+
+                trans_list[i].pre_zh = line_dst
+                trans_list[i].post_zh = line_dst
+                trans_list[i].trans_by = self.model_name
+                result_trans_list.append(trans_list[i])
+                if i >= len(trans_list) - 1:
+                    break
+
+            if error_flag:
+
+                LOGGER.error(f"[解析错误][{filename}:{idx_tip}]解析结果出错：{error_message}")
+                retry_count += 1
+                await asyncio.sleep(1)
+
+                tmp_enhance_jailbreak = not tmp_enhance_jailbreak
+
+                # 2次重试则对半拆
+                if retry_count == 2 and len(trans_list) > 1:
+                    retry_count -= 1
+                    LOGGER.warning(f"[解析错误][{filename}:{idx_tip}]仍然出错，拆分重试")
+                    return await self.translate(
+                        trans_list[: len(trans_list) // 2], gptdict,proofread=proofread,filename=filename
+                    )
+                # 单句重试仍错则重置会话
+                if retry_count == 3:
+                    self.last_translations[filename] = ""
+                    LOGGER.warning(f"[解析错误][{filename}:{idx_tip}]单句仍错，重置会话")
+                # 重试中止
+                if retry_count >= 4:
+                    self.last_translations[filename] = ""
+                    LOGGER.error(f"[解析错误][{filename}:{idx_tip}]解析反复出错，跳过本轮翻译")
+                    i = 0 if i < 0 else i
+                    while i < len(trans_list):
+                        if not proofread:
+                            trans_list[i].pre_zh = "Failed translation"
+                            trans_list[i].post_zh = "Failed translation"
+                            trans_list[i].problem = "Failed translation"
+                            trans_list[i].trans_by = f"{self.model_name}(Failed)"
+                        else:
+                            trans_list[i].proofread_zh = trans_list[i].pre_zh
+                            trans_list[i].post_zh = trans_list[i].pre_zh
+                            trans_list[i].problem = "Failed translation"
+                            trans_list[i].proofread_by = f"{self.model_name}(Failed)"
+                        result_trans_list.append(trans_list[i])
+                        i = i + 1
+                    return i, result_trans_list
+                continue
+
+            # 翻译完成，收尾
+            self.last_translations[filename] = resp
+            break
+        return i + 1, result_trans_list
+
+    async def batch_translate(
+        self,
+        filename,
+        cache_file_path,
+        trans_list: CTransList,
+        num_pre_request: int,
+        retry_failed: bool = False,
+        gpt_dic: CGptDict = None,
+        proofread: bool = False,
+        retran_key: str = "",
+        translist_hit: CTransList = [],
+        translist_unhit: CTransList = [],
+    ) -> CTransList:
+        if len(translist_unhit) == 0:
+            return []
+        if self.skipH:
+            translist_unhit = [
+                tran
+                for tran in translist_unhit
+                if not any(word in tran.post_jp for word in H_WORDS_LIST)
+            ]
+
+
+        if filename not in self.last_translations:
+            self.last_translations[filename]=""
+
+        i = 0
+
+        if self.restore_context_mode and not proofread:
+            self.restore_context(translist_unhit, num_pre_request,filename)
+
+        trans_result_list = []
+        len_trans_list = len(translist_unhit)
+        transl_step_count = 0
+
+        while i < len_trans_list:
+            # await asyncio.sleep(1)
+            trans_list_split = (
+                translist_unhit[i : i + num_pre_request]
+                if (i + num_pre_request < len_trans_list)
+                else translist_unhit[i:]
+            )
+
+            dic_prompt = gpt_dic.gen_prompt(trans_list_split, "gpt") if gpt_dic else ""
+
+            num, trans_result = await self.translate(
+                trans_list_split, dic_prompt, proofread=proofread,filename=filename
+            )
+
+            if num > 0:
+                i += num
+            self.pj_config.bar(num)
+            result_output = ""
+            for trans in trans_result:
+                result_output = result_output + repr(trans)
+            LOGGER.info(result_output)
+            trans_result_list += trans_result
+            transl_step_count += 1
+            if transl_step_count >= self.save_steps:
+                save_transCache_to_json(trans_list, cache_file_path)
+                transl_step_count = 0
+
+            LOGGER.info(
+                f"{filename}: {str(len(trans_result_list))}/{str(len_trans_list)}"
+            )
+
+        return trans_result_list
+
+    def reset_conversation(self):
+        self.last_translation = ""
+
+    def restore_context(self, translist_unhit: CTransList, num_pre_request: int,filename=""):
+        if translist_unhit[0].prev_tran == None:
+            return
+        tmp_context = []
+        num_count = 0
+        current_tran = translist_unhit[0].prev_tran
+        while current_tran != None:
+            if current_tran.pre_zh == "":
+                current_tran = current_tran.prev_tran
+                continue
+            speaker = current_tran.speaker if current_tran.speaker else "null"
+            tmp_obj = f"{speaker}\t{current_tran.pre_zh}\t{current_tran.index}"
+            tmp_context.append(tmp_obj)
+            num_count += 1
+            if num_count >= num_pre_request:
+                break
+            current_tran = current_tran.prev_tran
+
+        tmp_context.reverse()
+        json_lines = "\n".join(tmp_context)
+        self.last_translations[filename] = "NAME\tDST\tID\n" + json_lines
+        #LOGGER.info("-> 恢复了上下文")
+
+
+if __name__ == "__main__":
+    pass
