@@ -106,9 +106,6 @@ class GPT4TranslateNew(BaseTranslate):
                     ),
                 }
 
-            if trans.speaker == "":
-                del tmp_obj["name"]
-
             input_list.append(json.dumps(tmp_obj, ensure_ascii=False))
         input_src = "\n".join(input_list)
 
@@ -386,8 +383,12 @@ class GPT4TranslateNew(BaseTranslate):
                 current_tran = current_tran.prev_tran
                 continue
             speaker = current_tran.speaker if current_tran.speaker else "null"
-            tmp_obj = f"{speaker}\t{current_tran.pre_zh}\t{current_tran.index}"
-            tmp_context.append(tmp_obj)
+            tmp_obj = {
+                "id": current_tran.index,
+                "name": speaker,
+                "dst": current_tran.pre_zh,
+            }
+            tmp_context.append(json.dumps(tmp_obj, ensure_ascii=False))
             num_count += 1
             if num_count >= num_pre_request:
                 break
@@ -395,7 +396,7 @@ class GPT4TranslateNew(BaseTranslate):
 
         tmp_context.reverse()
         json_lines = "\n".join(tmp_context)
-        self.last_translations[filename] = "NAME\tDST\tID\n" + json_lines
+        self.last_translations[filename] = "```jsonline\n" + json_lines+"\n```"
         #LOGGER.info("-> 恢复了上下文")
 
 
