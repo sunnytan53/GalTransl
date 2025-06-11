@@ -176,7 +176,10 @@ class BaseTranslate:
                                 print(lastline)
                             lastline = ""
                 else:
-                    result = response.choices[0].message.content
+                    try:
+                        result = response.choices[0].message.content
+                    except:
+                        result=""
                 return result
             except Exception as e:
                 # gemini no_candidates

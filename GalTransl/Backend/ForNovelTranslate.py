@@ -194,7 +194,8 @@ class ForNovelTranslate(BaseTranslate):
             if error_flag:
                 LOGGER.error(f"-> [解析错误]解析结果出错：{error_message}")
                 self.retry_count += 1
-
+                await asyncio.sleep(1)
+                
                 tmp_enhance_jailbreak = not tmp_enhance_jailbreak
 
                 # 2次重试则对半拆
