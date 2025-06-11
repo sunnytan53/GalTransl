@@ -49,9 +49,8 @@ common:
     - "重翻在缓存的problem或pre_jp中包含对应**关键字**的句子，去掉下面列表中的#号注释来使用，也可添加自定义的关键字。"
     #- "残留日文" # 日文平假名片假名残留
     #- "项目GPT字典" # LLM没有按GPT字典要求翻译
-
+  # ForGal/ForGal-json/ForNovel/r1
   gpt.enhance_jailbreak: False # 改善拒答[True/False]
-  # GPT4
   gpt.change_prompt: "no" # (GPT-4/r1)是否开启修改默认prompt,"AdditionalPrompt"为增加额外要求，"OverwritePrompt"为覆写原本的prompt
   gpt.prompt_content: "翻译结果使用文言文" # 示例额外要求，change_prompt为AdditionalPrompt时才生效
   # Sakura/GalTransl

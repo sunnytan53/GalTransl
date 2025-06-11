@@ -114,6 +114,14 @@ class BaseTranslate:
         self.stream=config.getBackendConfigSection(section_name).get(
             "stream", True
         )
+        
+        change_prompt = CProjectConfig.getProjectConfig(config)['common']['gpt.change_prompt']
+        prompt_content = CProjectConfig.getProjectConfig(config)['common']['gpt.prompt_content']
+        if change_prompt=="AdditionalPrompt" and prompt_content!="":
+            self.trans_prompt="# Additional Requirements: " + prompt_content+"\n"+self.trans_prompt
+        if change_prompt=="OverwritePrompt" and prompt_content!="":
+            self.trans_prompt=prompt_content
+
         if self.apiErrorWait == "auto":
             self.apiErrorWait = 0
 
@@ -203,11 +211,11 @@ class BaseTranslate:
                         "-> 检测到频率限制(429 RateLimitError)，翻译仍在进行中但速度将受影响..."
                     )
                 else:
-                    if file_name!="":
+                    if file_name!="" and file_name[:1] !="[":
                         file_name=f"[{file_name}]"
                     try:
                         LOGGER.error(
-                            f"[API Error]{file_name} {response.model_extra['error']}, sleeping {sleep_time}s"
+                            f"[API Error]{file_name} {response.model_extra['error']} sleeping {sleep_time}s"
                         )
                     except:
                         LOGGER.error(f"[API Error]{file_name} {e}, sleeping {sleep_time}s")
