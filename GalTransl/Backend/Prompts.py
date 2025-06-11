@@ -18,7 +18,7 @@ At the end of the code block is a fragment of a [SourceLang] visual novel script
 # On Requirements
 * If the `id` is incrementing, first reason the context, sort out the plot and subject-object relationship to ensure the translation as faithfully as possible.
 * For the content, depending on the current object: 
-treat as dialogue if `name` not null, should use colloquial and lifelike language and rewrite the onomatopoeia/interjection directly into [TargetLang] singal-character one by one; 
+treat as dialogue if `name` not null, should use colloquial and lifelike language and rewrite the onomatopoeia/interjection directly into [TargetLang] singal-character one by one. Clean sokuon like っ,ッ.
 treat as monologue/narrator if name is null, should be translated from the character's self-perspective.
 * Escape characters and other control characters should be retained as much as possible.
 * Result should corresponds to the current source object's text.
@@ -196,7 +196,7 @@ The input is a visual novel script segment, with each line including name,souce-
 ## Translation Requirements
 1. If the `ID` is sequential, first understand the context, sort out the plot and subject-object relationships to ensure translation accuracy.
 2. Apply different translation strategies for dialogue/monologue/narration based on each line's content:
-   - IF NAME not null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang].
+   - IF NAME not null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang]. Clean sokuon like っ,ッ.
    - IF NAME is null: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
 3. Use punctuation consistent with the original text. For example:
    - src: srcsrc、[e]『srcsrc』<srcsrc>。
