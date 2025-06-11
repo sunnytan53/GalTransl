@@ -473,7 +473,7 @@ class CGPT4Translate(BaseTranslate):
                     self.reset_conversation()
                     LOGGER.warning("-> 单句仍错，重置会话")
                 # 单句5次重试则中止
-                if self.retry_count == 5:
+                if self.retry_count >= 5:
                     LOGGER.error(get_text("repeated_error", GT_LANG, error_message))
                     raise RuntimeError(get_text("repeated_error", GT_LANG, error_message))
                 continue

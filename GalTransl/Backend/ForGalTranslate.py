@@ -20,7 +20,7 @@ from GalTransl.Backend.Prompts import (
     H_WORDS_LIST,
 )
 from GalTransl.Backend.BaseTranslate import BaseTranslate
-
+from openai._types import NOT_GIVEN
 
 class ForGalTranslate(BaseTranslate):
     # init
@@ -216,7 +216,7 @@ class ForGalTranslate(BaseTranslate):
                     self.reset_conversation()
                     LOGGER.warning("-> 单句仍错，重置会话")
                 # 重试中止
-                if self.retry_count == 4:
+                if self.retry_count >= 4:
                     self.reset_conversation()
                     LOGGER.error("-> [解析错误]解析反复出错，跳过本轮翻译")
                     i = 0 if i < 0 else i

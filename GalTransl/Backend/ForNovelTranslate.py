@@ -195,7 +195,7 @@ class ForNovelTranslate(BaseTranslate):
                 LOGGER.error(f"-> [解析错误]解析结果出错：{error_message}")
                 self.retry_count += 1
                 await asyncio.sleep(1)
-                
+
                 tmp_enhance_jailbreak = not tmp_enhance_jailbreak
 
                 # 2次重试则对半拆
@@ -210,7 +210,7 @@ class ForNovelTranslate(BaseTranslate):
                     self.reset_conversation()
                     LOGGER.warning("-> 单句仍错，重置会话")
                 # 重试中止
-                if self.retry_count == 4:
+                if self.retry_count >= 4:
                     self.reset_conversation()
                     LOGGER.error("-> [解析错误]解析反复出错，跳过本轮翻译")
                     i = 0 if i < 0 else i

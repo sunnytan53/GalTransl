@@ -128,6 +128,7 @@ class BaseTranslate:
             max_retries=0,
             http_client=client,
         )
+        self.reasoning_effort=NOT_GIVEN
         pass
 
     async def ask_chatbot(
@@ -141,6 +142,7 @@ class BaseTranslate:
         top_p=0.95,
         stream=None,
         max_tokens=None,
+        reasoning_effort=NOT_GIVEN
     ):
         api_try_count = 0
         stream=stream if stream else self.stream
@@ -160,6 +162,7 @@ class BaseTranslate:
                     max_tokens=max_tokens,
                     timeout=self.api_timeout,
                     top_p=top_p,
+                    reasoning_effort=reasoning_effort
                 )
                 result = ""
                 lastline = ""
