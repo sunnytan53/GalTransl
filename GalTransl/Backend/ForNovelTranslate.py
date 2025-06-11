@@ -40,8 +40,8 @@ class ForNovelTranslate(BaseTranslate):
         self.trans_prompt = FORNOVEL_TRANS_PROMPT_EN
         self.system_prompt = FORGAL_SYSTEM
         self.last_translation = ""
-        self._set_temp_type("precise")
         self.init_chatbot(eng_type=eng_type, config=config)
+        self._set_temp_type("precise")
         if "qwen3" in self.model_name.lower():
             self.system_prompt += "/no_think"
         # if "gemini" in self.model_name.lower():
@@ -307,16 +307,6 @@ class ForNovelTranslate(BaseTranslate):
 
     def reset_conversation(self):
         self.last_translation = ""
-
-    def _set_temp_type(self, style_name: str):
-        if self._current_temp_type == style_name:
-            return
-        self._current_temp_type = style_name
-        temperature = 0.6
-        frequency_penalty = 0.0
-
-        self.temperature = temperature
-        self.frequency_penalty = frequency_penalty
 
     def restore_context(self, translist_unhit: CTransList, num_pre_request: int):
         if translist_unhit[0].prev_tran == None:

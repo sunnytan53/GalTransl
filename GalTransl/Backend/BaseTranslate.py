@@ -13,6 +13,7 @@ from GalTransl.CSentense import CSentense, CTransList
 from GalTransl.Cache import save_transCache_to_json
 from GalTransl.Dictionary import CGptDict
 from openai import RateLimitError, AsyncOpenAI
+from openai._types import NOT_GIVEN
 import re
 import random
 
@@ -136,7 +137,7 @@ class BaseTranslate:
         system="",
         messages=[],
         temperature=0.6,
-        frequency_penalty=0.0,
+        frequency_penalty=NOT_GIVEN,
         top_p=0.95,
         stream=None,
         max_tokens=None,
@@ -155,7 +156,7 @@ class BaseTranslate:
                     messages=messages,
                     stream=stream,
                     temperature=temperature,
-                    frequency_penalty=frequency_penalty,
+                    frequency_penalty=NOT_GIVEN,
                     max_tokens=max_tokens,
                     timeout=self.api_timeout,
                     top_p=top_p,
@@ -285,14 +286,10 @@ class BaseTranslate:
         if self._current_temp_type == style_name:
             return
         self._current_temp_type = style_name
-        # normal default
         temperature = 0.6
-        frequency_penalty = 0.5
-        if style_name == "precise":
-            temperature = 0.3
-            frequency_penalty = 0.1
-        elif style_name == "normal":
-            pass
-
+        frequency_penalty = 0.0
         self.temperature = temperature
         self.frequency_penalty = frequency_penalty
+
+        if "gemini" in self.model_name.lower():
+            self.frequency_penalty = NOT_GIVEN
