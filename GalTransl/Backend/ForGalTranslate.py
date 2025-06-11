@@ -102,7 +102,7 @@ class ForGalTranslate(BaseTranslate):
                     f"->{'翻译输入' if not proofread else '校对输入'}：\n{gptdict}\n{input_src}\n"
                 )
                 LOGGER.info("->输出：")
-            resp = ""
+            resp = None
             resp = await self.ask_chatbot(
                 model_name=self.model_name,
                 messages=messages,
@@ -110,7 +110,7 @@ class ForGalTranslate(BaseTranslate):
                 frequency_penalty=self.frequency_penalty,
             )
 
-            result_text = resp
+            result_text = resp or ""
             result_text = result_text.split("NAME\tDST\tID")[-1].strip()
 
             i = -1
