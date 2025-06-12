@@ -107,7 +107,7 @@ class CSakuraTranslate(BaseTranslate):
     def clean_up(self):
         self.pj_config.endpointQueue.put_nowait(self.endpoint)
 
-    async def translate(self, trans_list: CTransList, gptdict=""):
+    async def translate(self, trans_list: CTransList, gptdict="",filename=""):
         input_list = []
         max_repeat = 0
         retry_count = 0
@@ -127,17 +127,21 @@ class CSakuraTranslate(BaseTranslate):
         prompt_req = prompt_req.replace("[Input]", input_str)
         prompt_req = prompt_req.replace("[Glossary]", gptdict)
 
+        last_translation=""
+        if filename in self.last_translations:
+            last_translation = self.last_translations[filename]
+
         if self.eng_type in ["galtransl-v3"]:  # v3不使用多轮对话做上下文
             history = ""
-            if self.last_translation:
-                history = f"历史翻译：{self.last_translation}\n"
+            if last_translation:
+                history = f"历史翻译：{last_translation}\n"
             prompt_req = prompt_req.replace("[History]", history)
 
         messages = []
         messages.append({"role": "system", "content": self.system_prompt})
-        if "sakura" in self.eng_type and self.last_translation:
+        if "sakura" in self.eng_type and last_translation:
             messages.append({"role": "user", "content": "(上轮翻译请求)"})
-            messages.append({"role": "assistant", "content": self.last_translation})
+            messages.append({"role": "assistant", "content": last_translation})
         messages.append({"role": "user", "content": prompt_req})
 
         while True:  # 一直循环，直到得到数据
@@ -253,7 +257,7 @@ class CSakuraTranslate(BaseTranslate):
                 retry_count = 0
 
             self._set_temp_type("precise")
-            self.last_translation = resp
+            self.last_translations[filename]=resp
             return i + 1, result_trans_list
 
     async def batch_translate(
@@ -272,11 +276,10 @@ class CSakuraTranslate(BaseTranslate):
 
         if len(translist_unhit) == 0:
             return []
-        # 新文件重置chatbot
-        if self.last_file_name != filename:
-            self.reset_conversation()
-            self.last_file_name = filename
-            # LOGGER.info(f"-> 开始翻译文件：{filename}")
+
+        if filename not in self.last_translations:
+            self.last_translations[filename]=""
+
         i = 0
 
         self.restore_context(translist_unhit, num_pre_request)
@@ -295,7 +298,7 @@ class CSakuraTranslate(BaseTranslate):
                 else ""
             )
 
-            num, trans_result = await self.translate(trans_list_split, dic_prompt)
+            num, trans_result = await self.translate(trans_list_split, dic_prompt, filename)
 
             if self.transl_dropout > 0 and num == num_pre_request:
                 if self.transl_dropout < num:
@@ -346,7 +349,7 @@ class CSakuraTranslate(BaseTranslate):
         self.frequency_penalty = frequency_penalty
         self.top_p = top_p
 
-    def restore_context(self, translist_unhit: CTransList, num_pre_request: int):
+    def restore_context(self, translist_unhit: CTransList, num_pre_request: int,filename=""):
         if translist_unhit[0].prev_tran == None:
             return
         tmp_context = []
@@ -368,7 +371,7 @@ class CSakuraTranslate(BaseTranslate):
 
         tmp_context.reverse()
         json_lines = "\n".join(tmp_context)
-        self.last_translation = json_lines
+        self.last_translations[filename] = json_lines
         LOGGER.info("-> 恢复了上下文")
 
     def check_degen_in_process(self, cn: str = ""):

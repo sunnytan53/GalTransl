@@ -369,8 +369,8 @@ class GPT4TranslateNew(BaseTranslate):
 
         return trans_result_list
 
-    def reset_conversation(self):
-        self.last_translation = ""
+    def reset_conversation(self,filename=""):
+        self.last_translations[filename]=""
 
     def restore_context(self, translist_unhit: CTransList, num_pre_request: int,filename=""):
         if translist_unhit[0].prev_tran == None:
