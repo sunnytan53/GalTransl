@@ -53,7 +53,7 @@ class CGPT4Translate(BaseTranslate):
         self.eng_type = eng_type
         self.last_file_name = ""
         self.restore_context_mode = config.getKey("gpt.restoreContextMode")
-        self.retry_count = 0
+        retry_count = 0
         # 保存间隔
         if val := config.getKey("save_steps"):
             self.save_steps = val
@@ -458,29 +458,29 @@ class CGPT4Translate(BaseTranslate):
 
                 await asyncio.sleep(1)
                 self._del_last_answer()
-                self.retry_count += 1
+                retry_count += 1
                 # 切换模式
                 self._set_temp_type("normal")
                 # 2次重试则对半拆
-                if self.retry_count == 2 and len(trans_list) > 1:
-                    self.retry_count -= 1
+                if retry_count == 2 and len(trans_list) > 1:
+                    retry_count -= 1
                     LOGGER.warning("-> 仍然出错，拆分重试")
                     return await self.translate(
                         trans_list[: len(trans_list) // 2], gptdict
                     )
                 # 单句重试仍错则重置会话
-                if self.retry_count == 3:
+                if retry_count == 3:
                     self.reset_conversation()
                     LOGGER.warning("-> 单句仍错，重置会话")
                 # 单句5次重试则中止
-                if self.retry_count >= 5:
+                if retry_count >= 5:
                     LOGGER.error(get_text("repeated_error", GT_LANG, error_message))
                     raise RuntimeError(get_text("repeated_error", GT_LANG, error_message))
                 continue
 
             # 翻译完成，收尾
             self._set_temp_type("precise")
-            self.retry_count = 0
+            retry_count = 0
             break
         return i + 1, result_trans_list
 

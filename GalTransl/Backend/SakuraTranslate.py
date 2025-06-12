@@ -56,7 +56,7 @@ class CSakuraTranslate(BaseTranslate):
         elif self.target_lang == "Traditional_Chinese":
             self.opencc = OpenCC("s2tw.json")
 
-        self.last_translation = ""
+        self.last_translations = {}
         self.endpoint = endpoint
         self.api_timeout = 30
         self.rateLimitWait = 1
@@ -110,6 +110,7 @@ class CSakuraTranslate(BaseTranslate):
     async def translate(self, trans_list: CTransList, gptdict=""):
         input_list = []
         max_repeat = 0
+        retry_count = 0
         line_lens = []
         for i, trans in enumerate(trans_list):
             tmp_text = trans.post_jp.replace("\r\n", "\\n").replace("\n", "\\n")
@@ -226,11 +227,11 @@ class CSakuraTranslate(BaseTranslate):
                         half_len = 1 if half_len < 1 else half_len
                         return await self.translate(trans_list[:half_len], gptdict)
                     # 拆成单句后，才开始计算重试次数
-                    self.retry_count += 1
+                    retry_count += 1
                     # 5次重试则填充原文
-                    if self.retry_count >= 5:
+                    if retry_count >= 5:
                         LOGGER.error(
-                            f"-> 单句循环重试{self.retry_count}次出错，填充原文"
+                            f"-> 单句循环重试{retry_count}次出错，填充原文"
                         )
                         i = 0 if i < 0 else i
                         while i < len(trans_list):
@@ -241,15 +242,15 @@ class CSakuraTranslate(BaseTranslate):
                             i = i + 1
                         return i, result_trans_list
                     # 2次重试则重置会话
-                    elif self.retry_count % 2 == 0:
+                    elif retry_count % 2 == 0:
                         self.reset_conversation()
                         LOGGER.warning(
-                            f"-> 单句循环重试{self.retry_count}次出错，重置会话"
+                            f"-> 单句循环重试{retry_count}次出错，重置会话"
                         )
                         continue
                     continue
             else:
-                self.retry_count = 0
+                retry_count = 0
 
             self._set_temp_type("precise")
             self.last_translation = resp
