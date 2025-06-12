@@ -1,10 +1,18 @@
 """
 分析问题
 """
+
 from GalTransl.CSentense import CTransList
 from GalTransl.ConfigHelper import CProjectConfig, CProblemType
-from GalTransl.Utils import get_most_common_char, contains_japanese, contains_english,punctuation_zh,contains_korean
+from GalTransl.Utils import (
+    get_most_common_char,
+    contains_japanese,
+    contains_english,
+    punctuation_zh,
+    contains_korean,
+)
 from GalTransl.Dictionary import CGptDict
+
 
 def find_problems(
     trans_list: CTransList,
@@ -26,7 +34,6 @@ def find_problems(
     find_type = projectConfig.getProblemAnalyzeConfig("problemList")
     if not find_type:
         find_type = projectConfig.getProblemAnalyzeConfig("GPT35")  # 兼容旧版
-    lb_symbol = projectConfig.getlbSymbol()
 
     for tran in trans_list:
         pre_jp = tran.pre_jp
@@ -35,6 +42,17 @@ def find_problems(
         post_zh = tran.post_zh
         if pre_zh == "":
             continue
+        n_symbol = ""
+        if "\\r\\n" in pre_jp:
+            n_symbol = "\\r\\n"
+        elif "\r\n" in pre_jp:
+            n_symbol = "\r\n"
+        elif "\\n" in pre_jp:
+            n_symbol = "\\n"
+        elif "\n" in pre_jp:
+            n_symbol = "\n"
+        if projectConfig.getlbSymbol() != "auto" and projectConfig.getlbSymbol() != "":
+            n_symbol = projectConfig.getlbSymbol()
 
         problem_list = []
         if CProblemType.词频过高 in find_type:
@@ -70,16 +88,16 @@ def find_problems(
         if CProblemType.残留日文 in find_type:
             if contains_japanese(pre_zh):
                 problem_list.append("残留日文")
-        if CProblemType.丢失换行 in find_type:
-            if pre_jp.count(lb_symbol) > post_zh.count(lb_symbol):
+        if CProblemType.丢失换行 in find_type and n_symbol != "":
+            if pre_jp.count(n_symbol) > post_zh.count(n_symbol):
                 problem_list.append("丢失换行")
-        if CProblemType.多加换行 in find_type:
-            if pre_jp.count(lb_symbol) < post_zh.count(lb_symbol):
+        if CProblemType.多加换行 in find_type and n_symbol != "":
+            if pre_jp.count(n_symbol) < post_zh.count(n_symbol):
                 problem_list.append("多加换行")
         if CProblemType.比日文长 in find_type or CProblemType.比日文长严格 in find_type:
-            len_beta=1.3
+            len_beta = 1.3
             if CProblemType.比日文长严格 in find_type:
-                len_beta=1.0
+                len_beta = 1.0
             if len(post_zh) > len(pre_jp) * len_beta:
                 problem_list.append(
                     f"比日文长{round(len(post_zh)/max(len(pre_jp),0.1),1)}倍"
@@ -89,20 +107,21 @@ def find_problems(
                 problem_list.append(val)
         if CProblemType.引入英文 in find_type:
             if not contains_english(post_jp) and contains_english(pre_zh):
-                if contains_english(post_zh): # 修了的不显示
+                if contains_english(post_zh):  # 修了的不显示
                     problem_list.append("引入英文")
         if CProblemType.语言不通 in find_type:
-            tmp_text=pre_zh
+            tmp_text = pre_zh
             for chr in punctuation_zh:
-                tmp_text=tmp_text.replace(chr,"")
-            if len(tmp_text)>3:
+                tmp_text = tmp_text.replace(chr, "")
+            if len(tmp_text) > 3:
                 import langid
-                result=langid.classify(tmp_text)
-                lang_id=result[0]   
-                if lang_id=="zh":
-                    lang_id="zh-cn"
-                if lang_id!=projectConfig.target_lang:
-                    if lang_id!="ja":
+
+                result = langid.classify(tmp_text)
+                lang_id = result[0]
+                if lang_id == "zh":
+                    lang_id = "zh-cn"
+                if lang_id != projectConfig.target_lang:
+                    if lang_id != "ja":
                         problem_list.append(f"语言不通")
 
         if arinashi_dict != {}:
@@ -111,7 +130,7 @@ def find_problems(
                     problem_list.append(f"本无 {key} 译有 {value}")
                 if key in pre_jp and value not in post_zh:
                     problem_list.append(f"本有 {key} 译无 {value}")
-        
+
         if "Failed translation" in post_zh:
             problem_list.append("翻译失败")
 

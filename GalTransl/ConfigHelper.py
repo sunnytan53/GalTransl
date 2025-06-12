@@ -135,7 +135,7 @@ class CProjectConfig:
         return self.projectConfig["plugin"]
 
     def getlbSymbol(self) -> str:
-        lbSymbol = self.projectConfig["common"].get("linebreakSymbol", "\r\n")
+        lbSymbol = self.projectConfig["common"].get("linebreakSymbol", "auto")
         return lbSymbol
 
     def getProxyConfigSection(self) -> dict:

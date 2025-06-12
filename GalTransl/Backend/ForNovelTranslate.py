@@ -74,8 +74,7 @@ class ForNovelTranslate(BaseTranslate):
             
             src_text = src_text.replace("\t", "[t]")
             if n_symbol:
-                src_text = src_text.replace(n_symbol, "[e]")
-
+                src_text = src_text.replace(n_symbol, "<br>")
 
             tmp_obj = f"{src_text}\t{trans.index}"
             input_list.append(tmp_obj)
@@ -97,7 +96,7 @@ class ForNovelTranslate(BaseTranslate):
             messages = []
             messages.append({"role": "system", "content": self.system_prompt})
             if filename in self.last_translations and self.last_translations[filename] != "":
-                self.last_translations[filename]=self.last_translations[filename].replace("[e]","")
+                self.last_translations[filename]=self.last_translations[filename].replace("<br>","")
                 messages.append({"role": "user", "content": "(……truncated translation request……)"})
                 messages.append({"role": "assistant", "content": self.last_translations[filename]})
             messages.append({"role": "user", "content": prompt_req})
@@ -192,7 +191,7 @@ class ForNovelTranslate(BaseTranslate):
 
                 line_dst = line_dst.replace("[t]", "\t")
                 if n_symbol:
-                    line_dst = line_dst.replace("[e]", n_symbol)
+                    line_dst = line_dst.replace("<br>", n_symbol)
 
                 if "……" in trans_list[i].post_jp and "..." in line_dst:
                     line_dst = line_dst.replace("......", "……")
