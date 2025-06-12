@@ -282,7 +282,7 @@ class CSakuraTranslate(BaseTranslate):
 
         i = 0
 
-        self.restore_context(translist_unhit, num_pre_request)
+        self.restore_context(translist_unhit, num_pre_request, filename)
 
         trans_result_list = []
         len_trans_list = len(translist_unhit)
@@ -372,7 +372,8 @@ class CSakuraTranslate(BaseTranslate):
         tmp_context.reverse()
         json_lines = "\n".join(tmp_context)
         self.last_translations[filename] = json_lines
-        LOGGER.info("-> 恢复了上下文")
+        if json_lines:
+            LOGGER.info(f"{filename} 恢复了上下文")
 
     def check_degen_in_process(self, cn: str = ""):
         line_count = cn.count("\n") + 1
