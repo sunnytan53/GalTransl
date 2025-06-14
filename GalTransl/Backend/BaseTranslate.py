@@ -40,7 +40,7 @@ class BaseTranslate:
         self.pj_config = config
         self.eng_type = eng_type
         self.last_file_name = ""
-        self.restore_context_mode = config.getKey("gpt.restoreContextMode",True)
+        self.restore_context_mode = config.getKey("gpt.restoreContextMode", True)
         # 保存间隔
         if val := config.getKey("save_steps"):
             self.save_steps = val
@@ -110,34 +110,40 @@ class BaseTranslate:
         self.apiErrorWait = config.getBackendConfigSection(section_name).get(
             "apiErrorWait", "auto"
         )
-        self.stream=config.getBackendConfigSection(section_name).get(
-            "stream", True
-        )
-        
-        change_prompt = CProjectConfig.getProjectConfig(config)['common']['gpt.change_prompt']
-        prompt_content = CProjectConfig.getProjectConfig(config)['common']['gpt.prompt_content']
-        if change_prompt=="AdditionalPrompt" and prompt_content!="":
-            self.trans_prompt="# Additional Requirements: " + prompt_content+"\n"+self.trans_prompt
-        if change_prompt=="OverwritePrompt" and prompt_content!="":
-            self.trans_prompt=prompt_content
+        self.stream = config.getBackendConfigSection(section_name).get("stream", True)
+
+        change_prompt = CProjectConfig.getProjectConfig(config)["common"][
+            "gpt.change_prompt"
+        ]
+        prompt_content = CProjectConfig.getProjectConfig(config)["common"][
+            "gpt.prompt_content"
+        ]
+        if change_prompt == "AdditionalPrompt" and prompt_content != "":
+            self.trans_prompt = (
+                "# Additional Requirements: "
+                + prompt_content
+                + "\n"
+                + self.trans_prompt
+            )
+        if change_prompt == "OverwritePrompt" and prompt_content != "":
+            self.trans_prompt = prompt_content
 
         if self.apiErrorWait == "auto":
             self.apiErrorWait = 0
 
-        
         if self.proxyProvider:
             proxy_addr = self.proxyProvider.getProxy().addr
         else:
             proxy_addr = None
-        trust_env=False # 不使用系统代理
+        trust_env = False  # 不使用系统代理
 
         self.chatbot = AsyncOpenAI(
             api_key=self.token.token,
             base_url=f"{self.token.domain}{base_path}",
             max_retries=0,
-            http_client=httpx.AsyncClient(proxy=proxy_addr,trust_env=trust_env),
+            http_client=httpx.AsyncClient(proxy=proxy_addr, trust_env=trust_env),
         )
-        self.reasoning_effort=NOT_GIVEN
+        self.reasoning_effort = NOT_GIVEN
         pass
 
     async def ask_chatbot(
@@ -155,7 +161,7 @@ class BaseTranslate:
         file_name="",
     ):
         api_try_count = 0
-        stream=stream if stream else self.stream
+        stream = stream if stream else self.stream
         while True:
             try:
                 if messages == []:
@@ -172,7 +178,7 @@ class BaseTranslate:
                     max_tokens=max_tokens,
                     timeout=self.api_timeout,
                     top_p=top_p,
-                    reasoning_effort=reasoning_effort
+                    reasoning_effort=reasoning_effort,
                 )
                 result = ""
                 lastline = ""
@@ -181,7 +187,7 @@ class BaseTranslate:
                         if not chunk.choices:
                             continue
                         if hasattr(chunk.choices[0].delta, "reasoning_content"):
-                            lastline+=chunk.choices[0].delta.reasoning_content or ""
+                            lastline += chunk.choices[0].delta.reasoning_content or ""
                         result += chunk.choices[0].delta.content or ""
                         lastline += chunk.choices[0].delta.content or ""
                         if lastline.endswith("\n"):
@@ -192,7 +198,7 @@ class BaseTranslate:
                     try:
                         result = response.choices[0].message.content
                     except:
-                        result=""
+                        result = ""
                 return result
             except Exception as e:
                 # gemini no_candidates
@@ -212,14 +218,16 @@ class BaseTranslate:
                         "-> 检测到频率限制(429 RateLimitError)，翻译仍在进行中但速度将受影响..."
                     )
                 else:
-                    if file_name!="" and file_name[:1] !="[":
-                        file_name=f"[{file_name}]"
+                    if file_name != "" and file_name[:1] != "[":
+                        file_name = f"[{file_name}]"
                     try:
                         LOGGER.error(
                             f"[API Error]{file_name} {response.model_extra['error']} sleeping {sleep_time}s"
                         )
                     except:
-                        LOGGER.error(f"[API Error]{file_name} {e}, sleeping {sleep_time}s")
+                        LOGGER.error(
+                            f"[API Error]{file_name} {e}, sleeping {sleep_time}s"
+                        )
 
                 await asyncio.sleep(sleep_time)
 
