@@ -124,16 +124,18 @@ class BaseTranslate:
         if self.apiErrorWait == "auto":
             self.apiErrorWait = 0
 
+        
         if self.proxyProvider:
-            self.proxy = self.proxyProvider.getProxy()
-            client = httpx.AsyncClient(proxy=self.proxy.addr if self.proxy else None)
+            proxy_addr = self.proxyProvider.getProxy().addr
         else:
-            client = httpx.AsyncClient()
+            proxy_addr = None
+        trust_env=False # 不使用系统代理
+
         self.chatbot = AsyncOpenAI(
             api_key=self.token.token,
             base_url=f"{self.token.domain}{base_path}",
             max_retries=0,
-            http_client=client,
+            http_client=httpx.AsyncClient(proxy=proxy_addr,trust_env=trust_env),
         )
         self.reasoning_effort=NOT_GIVEN
         pass
