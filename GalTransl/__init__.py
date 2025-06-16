@@ -60,16 +60,16 @@ INPUT_FOLDERNAME = "gt_input"
 OUTPUT_FOLDERNAME = "gt_output"
 CACHE_FOLDERNAME = "transl_cache"
 TRANSLATOR_SUPPORTED = {
-    "ForGal-tsv": {
-        "zh-cn": "(OAI/Claude/Deepseek)v6新模板，翻译GaL时使用。默认deepseek-chat模型",
-        "en": " (OAI/Claude/Deepseek)Customized template for Gal translation, faster and more efficient. Default model: deepseek-chat"
-    },
     "ForGal-json": {
-        "zh-cn": "(OAI/Claude/Deepseek)(原GPT4)，翻译GaL时使用，json格式输入，默认gpt-4模型",
+        "zh-cn": "(OAI/Claude/Deepseek)(原GPT4)翻译GaL时使用，json格式输入，兼容性好。默认gpt-4模型",
         "en": "(OAI/Claude/Deepseek)(original gpt4) Customized template for Gal translation, json input. Default model: gpt-4"
     },
+    "ForGal-tsv": {
+        "zh-cn": "(OAI/Claude/Deepseek)翻译GaL时使用,tsv格式输入，省token。默认deepseek-chat模型",
+        "en": " (OAI/Claude/Deepseek)Customized template for Gal translation, faster and more efficient. Default model: deepseek-chat"
+    },
     "ForNovel": {
-        "zh-cn": "(OAI/Claude/Deepseek)v6新模板，翻译轻小说等其他文本时使用，区别是不带name字段。默认deepseek-chat模型",
+        "zh-cn": "(OAI/Claude/Deepseek)翻译轻小说等其他文本时使用，区别是输入不带name字段。默认deepseek-chat模型",
         "en": " (OAI/Claude/Deepseek)Customized template for Novel translation, faster and more efficient. Default model: deepseek-chat"
     },
     "r1": {
