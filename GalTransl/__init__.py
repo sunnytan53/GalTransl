@@ -60,7 +60,7 @@ INPUT_FOLDERNAME = "gt_input"
 OUTPUT_FOLDERNAME = "gt_output"
 CACHE_FOLDERNAME = "transl_cache"
 TRANSLATOR_SUPPORTED = {
-    "ForGal": {
+    "ForGal-tsv": {
         "zh-cn": "(OAI/Claude/Deepseek)v6新模板，翻译GaL时使用。默认deepseek-chat模型",
         "en": " (OAI/Claude/Deepseek)Customized template for Gal translation, faster and more efficient. Default model: deepseek-chat"
     },
@@ -106,7 +106,7 @@ TRANSLATOR_SUPPORTED = {
     },
 }
 TRANSLATOR_DEFAULT_ENGINE = {
-    "ForGal": "deepseek-chat",
+    "ForGal-tsv": "deepseek-chat",
     "ForNovel": "deepseek-chat",
     "ForGal-json": "gpt-4",
     "r1": "deepseek-reasoner",
@@ -114,7 +114,7 @@ TRANSLATOR_DEFAULT_ENGINE = {
     "galtransl-v3": "Sakura-GalTransl-7B-v3",
     "GenDic": "deepseek-chat",
 }
-NEED_OpenAITokenPool=["ForGal-json", "r1", "ForGal","ForNovel","GenDic"]
+NEED_OpenAITokenPool=["ForGal-json", "r1", "ForGal-tsv","ForNovel","GenDic"]
 LANG_SUPPORTED = {
     "zh-cn": "Simplified_Chinese",
     "zh-tw": "Traditional_Chinese",
