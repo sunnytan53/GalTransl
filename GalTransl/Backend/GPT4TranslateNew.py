@@ -94,13 +94,13 @@ class GPT4TranslateNew(BaseTranslate):
                 tmp_obj = {
                     "id": trans.index,
                     "name": trans.speaker,
-                    "src": trans.post_jp,
+                    "src": src_text,
                 }
             else:
                 tmp_obj = {
                     "id": trans.index,
                     "name": trans.speaker,
-                    "src": trans.post_jp,
+                    "src": src_text,
                     "dst": (
                         trans.pre_zh if trans.proofread_zh == "" else trans.proofread_zh
                     ),
