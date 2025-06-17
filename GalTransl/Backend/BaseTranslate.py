@@ -188,9 +188,10 @@ class BaseTranslate:
                             continue
                         if hasattr(chunk.choices[0].delta, "reasoning_content"):
                             lastline += chunk.choices[0].delta.reasoning_content or ""
-                        result += chunk.choices[0].delta.content or ""
-                        lastline += chunk.choices[0].delta.content or ""
-                        if lastline.endswith("\n"):
+                        if chunk.choices[0].delta.content:
+                            result += chunk.choices[0].delta.content
+                            lastline += chunk.choices[0].delta.content
+                        if "\n" in lastline:
                             if self.pj_config.active_workers == 1:
                                 print(lastline)
                             lastline = ""
