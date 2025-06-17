@@ -62,10 +62,10 @@ CACHE_FOLDERNAME = "transl_cache"
 TRANSLATOR_SUPPORTED = {
     "ForGal-json": {
         "zh-cn": "(OAI/Claude/Deepseek)(原GPT4)翻译GaL时使用，json格式输入，兼容性好。默认gpt-4模型",
-        "en": "(OAI/Claude/Deepseek)(original gpt4) Customized template for Gal translation, json input. Default model: gpt-4"
+        "en": "(OAI/Claude/Deepseek)Customized template for Gal translation, json input. Default model: gpt-4"
     },
     "ForGal-tsv": {
-        "zh-cn": "(OAI/Claude/Deepseek)翻译GaL时使用,tsv格式输入，省token。默认deepseek-chat模型",
+        "zh-cn": "(OAI/Claude/Deepseek)翻译GaL时使用，tsv格式输入，省token。默认deepseek-chat模型",
         "en": " (OAI/Claude/Deepseek)Customized template for Gal translation, faster and more efficient. Default model: deepseek-chat"
     },
     "ForNovel": {
