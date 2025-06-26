@@ -182,11 +182,11 @@ class ForNovelTranslate(BaseTranslate):
                     line_dst = line_dst.replace("“", '"')
                     line_dst = line_dst.replace("”", '"')
 
-                if not line_dst.startswith("「") and trans_list[i].post_jp.startswith(
+                if "「" not in line_dst and trans_list[i].post_jp.startswith(
                     "「"
                 ):
                     line_dst = "「" + line_dst
-                if not line_dst.endswith("」") and trans_list[i].post_jp.endswith("」"):
+                if "」" not in line_dst and trans_list[i].post_jp.endswith("」"):
                     line_dst = line_dst + "」"
 
                 line_dst = line_dst.replace("[t]", "\t")
