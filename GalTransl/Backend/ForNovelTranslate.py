@@ -330,7 +330,6 @@ class ForNovelTranslate(BaseTranslate):
             if current_tran.pre_zh == "":
                 current_tran = current_tran.prev_tran
                 continue
-            speaker = current_tran.speaker if current_tran.speaker else "null"
             tmp_obj = f"{current_tran.pre_zh}\t{current_tran.index}"
             tmp_context.append(tmp_obj)
             num_count += 1

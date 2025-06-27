@@ -63,24 +63,16 @@ class ForGalTranslate(BaseTranslate):
             idx_tip=start_idx
 
         for i, trans in enumerate(trans_list):
-            speaker = trans.speaker if trans.speaker else "null"
+            speaker_name=trans.get_speaker_name()
+            speaker = speaker_name if speaker_name else "null"
             speaker = speaker.replace("\r\n", "").replace("\t", "").replace("\n", "")
-            src_text = trans.post_jp
 
-            if "\\r\\n" in src_text:
-                n_symbol = "\\r\\n"
-            elif "\r\n" in src_text:
-                n_symbol = "\r\n"
-            elif "\\n" in src_text:
-                n_symbol = "\\n"
-            elif "\n" in src_text:
-                n_symbol = "\n"
-            
+            src_text = trans.post_jp
             src_text = src_text.replace("\t", "[t]")
-            if n_symbol:
-                src_text = src_text.replace(n_symbol, "<br>")
+
             tmp_obj = f"{speaker}\t{src_text}\t{trans.index}"
             input_list.append(tmp_obj)
+
         input_src = "\n".join(input_list)
 
 
@@ -334,7 +326,8 @@ class ForGalTranslate(BaseTranslate):
             if current_tran.pre_zh == "":
                 current_tran = current_tran.prev_tran
                 continue
-            speaker = current_tran.speaker if current_tran.speaker else "null"
+            speaker_name=current_tran.get_speaker_name()
+            speaker = speaker_name if speaker_name else "null"
             tmp_obj = f"{speaker}\t{current_tran.pre_zh}\t{current_tran.index}"
             tmp_context.append(tmp_obj)
             num_count += 1

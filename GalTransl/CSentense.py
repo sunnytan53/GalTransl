@@ -52,6 +52,15 @@ class CSentense:
         if hasattr(self, "_pre_jp"):
             raise AttributeError("Can't modify pre_jp")
         self._pre_jp = value
+    
+    def get_speaker_name(self):
+        if isinstance(self.speaker, str):
+            return self.speaker
+        if isinstance(self.speaker, list):
+            return "/".join(self.speaker)
+
+        return ""
+
 
     def __repr__(self) -> str:
         name = self.speaker

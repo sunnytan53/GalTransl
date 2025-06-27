@@ -262,17 +262,17 @@ def fix_quotes2(text):
 
 
 def get_n_symbol(src_text: str):
-    n_symbol = None
+    n_symbols = []
+    if "\r\n" in src_text:
+        n_symbols.append("\r\n")
+    if "\n" in src_text and "\r\n" not in src_text:
+        n_symbols.append("\n")
     if "\\r\\n" in src_text:
-        n_symbol = "\\r\\n"
-    elif "\\n" in src_text:
-        n_symbol = "\\n"
-    elif "\r\n" in src_text:
-        n_symbol = "\r\n"
-    elif "\n" in src_text:
-        n_symbol = "\n"
+        n_symbols.append("\\r\\n")
+    if "\\n" in src_text and "\\r\\n" not in src_text:
+        n_symbols.append("\\n")
 
-    return n_symbol
+    return n_symbols
 
 
 def check_for_tool_updates(new_version):
