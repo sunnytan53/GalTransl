@@ -73,7 +73,8 @@ class GPT4TranslateNew(BaseTranslate):
             idx_tip=start_idx
 
         for i, trans in enumerate(trans_list):
-            speaker = trans.speaker if trans.speaker else "null"
+            speaker_name=trans.get_speaker_name()
+            speaker = speaker_name if speaker_name else "null"
             speaker = speaker.replace("\r\n", "").replace("\t", "").replace("\n", "")
             src_text = trans.post_jp
 
@@ -93,13 +94,13 @@ class GPT4TranslateNew(BaseTranslate):
             if not proofread:
                 tmp_obj = {
                     "id": trans.index,
-                    "name": trans.speaker,
+                    "name": speaker,
                     "src": src_text,
                 }
             else:
                 tmp_obj = {
                     "id": trans.index,
-                    "name": trans.speaker,
+                    "name": speaker,
                     "src": src_text,
                     "dst": (
                         trans.pre_zh if trans.proofread_zh == "" else trans.proofread_zh
@@ -382,7 +383,8 @@ class GPT4TranslateNew(BaseTranslate):
             if current_tran.pre_zh == "":
                 current_tran = current_tran.prev_tran
                 continue
-            speaker = current_tran.speaker if current_tran.speaker else "null"
+            speaker_name=current_tran.get_speaker_name()
+            speaker = speaker_name if speaker_name else "null"
             tmp_obj = {
                 "id": current_tran.index,
                 "name": speaker,

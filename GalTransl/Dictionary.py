@@ -394,7 +394,7 @@ class CGptDict:
     def gen_prompt(self, trans_list: CTransList, type="gpt"):
         promt = ""
         input_text = "\n".join(
-            [f"{tran.speaker}:{tran.post_jp}" for tran in trans_list]
+            [f"{tran.get_speaker_name()}:{tran.post_jp}" for tran in trans_list]
         )
         if type == "gpt":
             for i, dic in enumerate(self._dic_list):

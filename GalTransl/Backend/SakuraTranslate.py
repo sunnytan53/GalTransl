@@ -119,9 +119,10 @@ class CSakuraTranslate(BaseTranslate):
             idx_tip=f"{start_idx}~{end_idx}"
         for i, trans in enumerate(trans_list):
             tmp_text = trans.post_jp.replace("\r\n", "\\n").replace("\n", "\\n")
+            speaker_name=trans.get_speaker_name()
 
-            if trans.speaker != "":
-                tmp_text = f"{trans.speaker}「{tmp_text}」"
+            if speaker_name != "":
+                tmp_text = f"{speaker_name}「{tmp_text}」"
             input_list.append(tmp_text)
             _, count = find_most_repeated_substring(tmp_text)
             max_repeat = max(max_repeat, count)
@@ -187,7 +188,7 @@ class CSakuraTranslate(BaseTranslate):
                     break
 
                 # 提取对话内容
-                if trans_list[i].speaker != "":
+                if trans_list[i].get_speaker_name() != "":
                     if "「" in line:
                         line = line[line.find("「") + 1 :]
                     if line.endswith("」"):
@@ -361,8 +362,9 @@ class CSakuraTranslate(BaseTranslate):
             if current_tran.pre_zh == "":
                 current_tran = current_tran.prev_tran
                 continue
-            if current_tran.speaker != "":
-                tmp_text = f"{current_tran.speaker}「{current_tran.pre_zh}」"
+            speaker_name=current_tran.get_speaker_name()
+            if speaker_name != "":
+                tmp_text = f"{speaker_name}「{current_tran.pre_zh}」"
             else:
                 tmp_text = f"{current_tran.pre_zh}"
             tmp_context.append(tmp_text)
