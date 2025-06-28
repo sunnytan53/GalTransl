@@ -66,11 +66,11 @@ TRANSLATOR_SUPPORTED = {
     },
     "ForGal-tsv": {
         "zh-cn": "(OAI/Claude/Deepseek)翻译GaL时使用，tsv格式输入，省token。默认deepseek-chat模型",
-        "en": " (OAI/Claude/Deepseek)Customized template for Gal translation, faster and more efficient. Default model: deepseek-chat"
+        "en": " (OAI/Claude/Deepseek)Customized template for Gal translation,save tokens. Default model: deepseek-chat"
     },
     "ForNovel": {
         "zh-cn": "(OAI/Claude/Deepseek)翻译轻小说等其他文本时使用，区别是输入不带name字段。默认deepseek-chat模型",
-        "en": " (OAI/Claude/Deepseek)Customized template for Novel translation, faster and more efficient. Default model: deepseek-chat"
+        "en": " (OAI/Claude/Deepseek)Customized template for Novel translation. Default model: deepseek-chat"
     },
     "r1": {
         "zh-cn": "Deepseek-R1模型专用翻译模板，默认deepseek-reasoner模型",
