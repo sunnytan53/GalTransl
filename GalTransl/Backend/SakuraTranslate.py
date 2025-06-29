@@ -9,6 +9,7 @@ from GalTransl.Cache import save_transCache_to_json
 from GalTransl.Dictionary import CGptDict
 from GalTransl.Utils import find_most_repeated_substring
 from GalTransl.Backend.BaseTranslate import BaseTranslate
+from GalTransl.COpenAI import COpenAIToken
 from GalTransl.Backend.Prompts import (
     Sakura_TRANS_PROMPT,
     Sakura_SYSTEM_PROMPT,
@@ -76,6 +77,7 @@ class CSakuraTranslate(BaseTranslate):
         import httpx
         import re
 
+        self.tokenStrategy =  "random"
         backendSpecific = config.projectConfig["backendSpecific"]
         section_name = "SakuraLLM" if "SakuraLLM" in backendSpecific else "Sakura"
         model_name = config.getBackendConfigSection(section_name).get(
@@ -93,16 +95,19 @@ class CSakuraTranslate(BaseTranslate):
 
         if self.proxyProvider:
             self.proxy = self.proxyProvider.getProxy()
-            client = httpx.AsyncClient(proxy=self.proxy.addr if self.proxy else None)
+            client = httpx.AsyncClient(proxy=self.proxy.addr if self.proxy else None,trust_env=False)
         else:
-            client = httpx.AsyncClient()
+            client = httpx.AsyncClient(trust_env=False)
 
-        self.chatbot = AsyncOpenAI(
-            api_key="sk-2333",
+        chatbot = AsyncOpenAI(
+            api_key="sk-sakura",
             base_url=f"{endpoint}{base_path}",
             max_retries=0,
             http_client=client,
         )
+        token=COpenAIToken("sk-sakura",f"{endpoint}{base_path}","sakura",True)
+        self.client_list=[]
+        self.client_list.append((chatbot,token))
 
     def clean_up(self):
         self.pj_config.endpointQueue.put_nowait(self.endpoint)
@@ -157,7 +162,7 @@ class CSakuraTranslate(BaseTranslate):
                 print("-> 输出: ")
 
             resp = ""
-            resp = await self.ask_chatbot(
+            resp,token = await self.ask_chatbot(
                 messages=messages,
                 temperature=self.temperature,
                 frequency_penalty=self.frequency_penalty,

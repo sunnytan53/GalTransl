@@ -53,10 +53,6 @@ class GPT4TranslateNew(BaseTranslate):
         if "r1" in eng_type:
             self.trans_prompt = DEEPSEEK_TRANS_PROMPT
             self.system_prompt = DEEPSEEK_SYSTEM_PROMPT
-        if "qwen3" in self.model_name.lower():
-            self.system_prompt += "/no_think"
-        # if "gemini" in self.model_name.lower():
-        #     self.enhance_jailbreak = True
 
         pass
 
@@ -140,11 +136,9 @@ class GPT4TranslateNew(BaseTranslate):
                 )
                 LOGGER.info("->输出：")
             resp = None
-            resp = await self.ask_chatbot(
-                model_name=self.model_name,
+            resp,token = await self.ask_chatbot(
                 messages=messages,
                 temperature=self.temperature,
-                frequency_penalty=self.frequency_penalty,
                 file_name=f"{filename}:{idx_tip}",
             )
 
@@ -252,7 +246,7 @@ class GPT4TranslateNew(BaseTranslate):
 
                 trans_list[i].pre_zh = line_dst
                 trans_list[i].post_zh = line_dst
-                trans_list[i].trans_by = self.model_name
+                trans_list[i].trans_by = token.model_name
                 result_trans_list.append(trans_list[i])
                 if i >= len(trans_list) - 1:
                     break
@@ -286,12 +280,12 @@ class GPT4TranslateNew(BaseTranslate):
                             trans_list[i].pre_zh = "Failed translation"
                             trans_list[i].post_zh = "Failed translation"
                             trans_list[i].problem = "Failed translation"
-                            trans_list[i].trans_by = f"{self.model_name}(Failed)"
+                            trans_list[i].trans_by = f"{token.model_name}(Failed)"
                         else:
                             trans_list[i].proofread_zh = trans_list[i].pre_zh
                             trans_list[i].post_zh = trans_list[i].pre_zh
                             trans_list[i].problem = "Failed translation"
-                            trans_list[i].proofread_by = f"{self.model_name}(Failed)"
+                            trans_list[i].proofread_by = f"{token.model_name}(Failed)"
                         result_trans_list.append(trans_list[i])
                         i = i + 1
                     return i, result_trans_list

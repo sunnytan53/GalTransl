@@ -2,7 +2,7 @@ import asyncio
 import httpx
 from opencc import OpenCC
 from typing import Optional
-from GalTransl.COpenAI import COpenAITokenPool
+from GalTransl.COpenAI import COpenAITokenPool,COpenAIToken
 from GalTransl.ConfigHelper import CProxyPool
 from GalTransl import LOGGER, LANG_SUPPORTED, TRANSLATOR_DEFAULT_ENGINE
 from GalTransl.i18n import get_text, GT_LANG
@@ -14,8 +14,8 @@ from GalTransl.Cache import save_transCache_to_json
 from GalTransl.Dictionary import CGptDict
 from openai import RateLimitError, AsyncOpenAI
 from openai._types import NOT_GIVEN
-import re
 import random
+import time
 
 
 class BaseTranslate:
@@ -83,6 +83,7 @@ class BaseTranslate:
             self.streamOutputMode = False
 
         self.tokenProvider = token_pool
+
         if config.getKey("internals.enableProxy") == True:
             self.proxyProvider = proxy_pool
         else:
@@ -99,16 +100,15 @@ class BaseTranslate:
 
     def init_chatbot(self, eng_type, config: CProjectConfig):
         section_name = "OpenAI-Compatible"
-        self.model_name = config.getBackendConfigSection(section_name).get(
-            "rewriteModelName", TRANSLATOR_DEFAULT_ENGINE[eng_type]
-        )
-        self.token = self.tokenProvider.getToken()
-        base_path = "/v1" if not re.search(r"/v\d+", self.token.domain) else ""
+
         self.api_timeout = config.getBackendConfigSection(section_name).get(
             "apiTimeout", 60
         )
         self.apiErrorWait = config.getBackendConfigSection(section_name).get(
             "apiErrorWait", "auto"
+        )
+        self.tokenStrategy = config.getBackendConfigSection(section_name).get(
+            "tokenStrategy", "random"
         )
         self.stream = config.getBackendConfigSection(section_name).get("stream", True)
 
@@ -135,20 +135,22 @@ class BaseTranslate:
             proxy_addr = self.proxyProvider.getProxy().addr
         else:
             proxy_addr = None
-        trust_env = False  # 不使用系统代理
 
-        self.chatbot = AsyncOpenAI(
-            api_key=self.token.token,
-            base_url=f"{self.token.domain}{base_path}",
-            max_retries=0,
-            http_client=httpx.AsyncClient(proxy=proxy_addr, trust_env=trust_env),
-        )
-        self.reasoning_effort = NOT_GIVEN
+        trust_env = False  # 不使用系统代理
+        self.client_list=[]
+        for token in self.tokenProvider.get_available_token():
+            client=AsyncOpenAI(
+                api_key=token.token,
+                base_url=token.domain,
+                max_retries=0,
+                http_client=httpx.AsyncClient(proxy=proxy_addr, trust_env=trust_env),
+            )
+            self.client_list.append((client,token))
+
         pass
 
     async def ask_chatbot(
         self,
-        model_name="",
         prompt="",
         system="",
         messages=[],
@@ -162,19 +164,32 @@ class BaseTranslate:
     ):
         api_try_count = 0
         stream = stream if stream else self.stream
+        client,token=random.choices(self.client_list,k=1)[0]
         while True:
             try:
+                if self.tokenStrategy=="random" and api_try_count%5==0:
+                    client,token=random.choices(self.client_list,k=1)[0]
+                elif self.tokenStrategy=="fallback":
+                    index=api_try_count%len(self.client_list)
+                    client,token=self.client_list[index]
+                else:
+                    raise ValueError("tokenStrategy must be random or fallback")
+
                 if messages == []:
                     messages = [
                         {"role": "system", "content": system},
                         {"role": "user", "content": prompt},
                     ]
-                response = await self.chatbot.chat.completions.create(
-                    model=model_name if model_name else self.model_name,
+
+                if "qwen3" in token.model_name:
+                    messages[-1]["content"]="/no_think"+messages[-1]["content"]
+
+                response = await client.chat.completions.create(
+                    model=token.model_name,
                     messages=messages,
                     stream=stream,
                     temperature=temperature,
-                    frequency_penalty=NOT_GIVEN,
+                    frequency_penalty=frequency_penalty,
                     max_tokens=max_tokens,
                     timeout=self.api_timeout,
                     top_p=top_p,
@@ -200,11 +215,11 @@ class BaseTranslate:
                         result = response.choices[0].message.content
                     except:
                         result = ""
-                return result
+                return result,token
             except Exception as e:
                 # gemini no_candidates
                 if "no_candidates" in str(e):
-                    return ""
+                    return "",token
 
                 api_try_count += 1
                 if self.apiErrorWait > 0:
@@ -317,6 +332,3 @@ class BaseTranslate:
         frequency_penalty = 0.0
         self.temperature = temperature
         self.frequency_penalty = frequency_penalty
-
-        if "gemini" in self.model_name.lower():
-            self.frequency_penalty = NOT_GIVEN
