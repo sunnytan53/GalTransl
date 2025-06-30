@@ -129,7 +129,7 @@ class BaseTranslate:
             self.trans_prompt = prompt_content
 
         if self.apiErrorWait == "auto":
-            self.apiErrorWait = 0
+            self.apiErrorWait = -1
 
         if self.proxyProvider:
             proxy_addr = self.proxyProvider.getProxy().addr
@@ -167,14 +167,15 @@ class BaseTranslate:
         client,token=random.choices(self.client_list,k=1)[0]
         while True:
             try:
-                if self.tokenStrategy=="random" and api_try_count%5==0:
-                    client,token=random.choices(self.client_list,k=1)[0]
+                if self.tokenStrategy=="random":
+                    if api_try_count%2==0:
+                        client,token=random.choices(self.client_list,k=1)[0]
                 elif self.tokenStrategy=="fallback":
                     index=api_try_count%len(self.client_list)
                     client,token=self.client_list[index]
                 else:
                     raise ValueError("tokenStrategy must be random or fallback")
-
+                LOGGER.debug(f"Call api Using token {token.maskToken()}")
                 if messages == []:
                     messages = [
                         {"role": "system", "content": system},
@@ -214,20 +215,24 @@ class BaseTranslate:
                     try:
                         result = response.choices[0].message.content
                     except:
-                        result = ""
+                        raise ValueError("response.choices[0].message.content is None, no_candidates")
                 return result,token
             except Exception as e:
-                # gemini no_candidates
-                if "no_candidates" in str(e):
-                    return "",token
-
                 api_try_count += 1
-                if self.apiErrorWait > 0:
+                # gemini no_candidates
+                if "no_candidates" in str(e) and api_try_count>1:
+                    return "",token
+                if self.apiErrorWait >= 0:
                     sleep_time = self.apiErrorWait + random.random()
                 else:
                     # https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
                     sleep_time = 2 ** min(api_try_count, 6)
                     sleep_time = random.randint(0, sleep_time)
+                
+                if len(self.client_list)>1:
+                    token_info=f"[{token.maskToken()}]"
+                else:
+                    token_info=""
 
                 if isinstance(e, RateLimitError):
                     self.pj_config.bar.text(
@@ -238,11 +243,11 @@ class BaseTranslate:
                         file_name = f"[{file_name}]"
                     try:
                         LOGGER.error(
-                            f"[API Error]{file_name} {response.model_extra['error']} sleeping {sleep_time}s"
+                            f"[API Error]{token_info}{file_name} {response.model_extra['error']} sleeping {sleep_time}s"
                         )
                     except:
                         LOGGER.error(
-                            f"[API Error]{file_name} {e}, sleeping {sleep_time}s"
+                            f"[API Error]{token_info}{file_name} {e}, sleeping {sleep_time}s"
                         )
 
                 await asyncio.sleep(sleep_time)
