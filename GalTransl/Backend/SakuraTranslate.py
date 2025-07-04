@@ -179,7 +179,7 @@ class CSakuraTranslate(BaseTranslate):
             error_message = ""
 
             if len(result_list) != len(trans_list):
-                error_message = f"翻译结果与原文长度不一致"
+                error_message = f"翻译结果行数 与 原文行数 不一致"
                 error_flag = True
 
             for line in result_list:
@@ -240,7 +240,8 @@ class CSakuraTranslate(BaseTranslate):
                         LOGGER.warning(f"[{filename}:{idx_tip}]对半拆分重试")
                         half_len = len(trans_list) // 3
                         half_len = 1 if half_len < 1 else half_len
-                        return await self.translate(trans_list[:half_len], gptdict)
+                        return await self.translate(trans_list[:half_len], gptdict,filename)
+
                     # 拆成单句后，才开始计算重试次数
                     retry_count += 1
                     # 5次重试则填充原文
