@@ -193,7 +193,7 @@ class ForNovelTranslate(BaseTranslate):
 
                 trans_list[i].pre_zh = line_dst
                 trans_list[i].post_zh = line_dst
-                trans_list[i].trans_by = self.model_name
+                trans_list[i].trans_by = token.model_name
                 result_trans_list.append(trans_list[i])
                 if i >= len(trans_list) - 1:
                     break
