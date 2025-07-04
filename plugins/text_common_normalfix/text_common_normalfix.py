@@ -12,7 +12,7 @@ class text_common_normalfix(GTextPlugin):
             elif tran.post_jp.endswith("　"):
                 tran.post_jp = tran.post_jp[:-1]
                 tran.right_symbol = "　" + tran.right_symbol
-            if tran.post_jp.startswith(" "):
+            elif tran.post_jp.startswith(" "):
                 tran.post_jp = tran.post_jp[1:]
                 tran.left_symbol += " "
             elif tran.post_jp.endswith(" "):
