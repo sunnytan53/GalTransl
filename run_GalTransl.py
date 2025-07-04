@@ -104,7 +104,7 @@ class ProjectManager:
             if not user_input_raw:
                 continue
             
-            user_input_cleaned = user_input_raw.strip('"').strip("'")
+            user_input_cleaned = user_input_raw.strip("&").strip(" ").strip('"').strip("'")
             validated_input, project_dir, config_file_name = self.validate_project_path(user_input_cleaned)
             
             if project_dir:
