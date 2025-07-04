@@ -48,7 +48,7 @@ class GenDic(BaseTranslate):
             hint = "输入文本中的这些词语是一定要加入术语表的: \n" + "\n".join(name_hit)
 
         prompt = GENDIC_PROMPT.format(input=text, hint=hint)
-        rsp = await self.ask_chatbot(
+        rsp,token = await self.ask_chatbot(
             prompt=prompt, system=GENDIC_SYSTEM, temperature=0.6
         )
         print(rsp)
