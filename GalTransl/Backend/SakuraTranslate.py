@@ -81,7 +81,7 @@ class CSakuraTranslate(BaseTranslate):
         backendSpecific = config.projectConfig["backendSpecific"]
         section_name = "SakuraLLM" if "SakuraLLM" in backendSpecific else "Sakura"
         model_name = config.getBackendConfigSection(section_name).get(
-            "rewriteModelName"
+            "rewriteModelName","sakura"
         )
         self.apiErrorWait = 0
         self.model_name = model_name if model_name else "sakura"
@@ -105,7 +105,7 @@ class CSakuraTranslate(BaseTranslate):
             max_retries=0,
             http_client=client,
         )
-        token=COpenAIToken("sk-sakura",f"{endpoint}{base_path}","sakura",True)
+        token=COpenAIToken("sk-sakura",f"{endpoint}{base_path}",model_name,True)
         self.client_list=[]
         self.client_list.append((chatbot,token))
 
