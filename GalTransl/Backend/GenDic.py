@@ -185,6 +185,8 @@ class GenDic(BaseTranslate):
                 continue
             if item[0] in H_WORDS_LIST:
                 continue
+            if "（" not in item[0] and "（" in item[1]:
+                continue
 
             if self.dic_counter[item[0]] > 1:
                 final_list.append(item)
