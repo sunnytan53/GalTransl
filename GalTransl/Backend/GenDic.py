@@ -34,7 +34,6 @@ class GenDic(BaseTranslate):
         self.wokers = config.getKey("workersPerProject")
         self.counter_lock = Lock()
         self.list_lock = Lock()
-        self.config = config
         self.init_chatbot(eng_type, config)
         pass
 
@@ -171,6 +170,7 @@ class GenDic(BaseTranslate):
         with alive_bar(
             total=len(index_list), title=f"{self.wokers} 线程生成字典中……"
         ) as bar:
+            self.pj_config.bar=bar
             for f in asyncio.as_completed(tasks):
                 await f
                 bar()
@@ -197,7 +197,7 @@ class GenDic(BaseTranslate):
             elif item[0] in name_set:
                 final_list.append(item)
 
-        result_path = os.path.join(self.config.getProjectDir(), "项目GPT字典-生成.txt")
+        result_path = os.path.join(self.pj_config.getProjectDir(), "项目GPT字典-生成.txt")
 
         with open(result_path, "w", encoding="utf-8") as f:
             f.write("# 格式为日文[Tab]中文[Tab]解释(可不写)，参考项目wiki\n")
