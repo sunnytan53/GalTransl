@@ -111,6 +111,7 @@ class ForGalTranslate(BaseTranslate):
             result_text = result_text.split("NAME\tDST\tID")[-1].strip()
 
             i = -1
+            success_count=0
             result_trans_list = []
             result_lines = result_text.splitlines()
             error_flag = False
@@ -143,7 +144,7 @@ class ForGalTranslate(BaseTranslate):
                     error_flag = True
                     break
                 if str(trans_list[i].index) not in line_id:
-                    error_message = f"输出{line_id}句id未对应"
+                    error_message = f"{line_id}句id未对应{trans_list[i].index}"
                     error_flag = True
                     break
 
@@ -191,8 +192,13 @@ class ForGalTranslate(BaseTranslate):
                 trans_list[i].post_zh = line_dst
                 trans_list[i].trans_by = token.model_name
                 result_trans_list.append(trans_list[i])
+                success_count += 1
+
                 if i >= len(trans_list) - 1:
                     break
+
+            if success_count>0:
+                error_flag=False #部分解析
 
             if error_flag:
                 LOGGER.error(f"[解析错误][{filename}:{idx_tip}]解析结果出错：{error_message}")
@@ -232,6 +238,8 @@ class ForGalTranslate(BaseTranslate):
                         i = i + 1
                     return i, result_trans_list
                 continue
+            elif error_flag==False and error_message:
+                LOGGER.warning(f"[{filename}:{idx_tip}]解析了{len(trans_list)}句中的{success_count}句，存在问题：{error_message}")
 
             # 翻译完成，收尾
             self.last_translations[filename] = resp

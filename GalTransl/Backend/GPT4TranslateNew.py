@@ -14,7 +14,7 @@ from random import choice
 from GalTransl.CSentense import CSentense, CTransList
 from GalTransl.Cache import save_transCache_to_json
 from GalTransl.Dictionary import CGptDict
-from GalTransl.Utils import extract_code_blocks, fix_quotes
+from GalTransl.Utils import extract_code_blocks, fix_quotes2
 from GalTransl.Backend.Prompts import (
     NAME_PROMPT4,
     NAME_PROMPT4_R1,
@@ -152,9 +152,9 @@ class GPT4TranslateNew(BaseTranslate):
                     result_text = code_list[0]
             if '{"id' in result_text:
                 result_text = result_text[result_text.find('{"id') :]
-            result_text = fix_quotes(result_text)
 
             i = -1
+            success_count=0
             result_trans_list = []
             result_lines = result_text.splitlines()
             error_flag = False
@@ -169,12 +169,10 @@ class GPT4TranslateNew(BaseTranslate):
                 try:
                     line_json = json.loads(line)  # 尝试解析json
                 except:
-                    if i == -1:
-                        error_message = f"无法解析行：{line}"
-                        error_flag = True
-                        break
-                    else:
-                        break
+                    error_message = f"json无法解析行：{line}"
+                    error_flag = True
+                    break
+
 
                 i += 1
                 # 本行输出不正常
@@ -190,7 +188,7 @@ class GPT4TranslateNew(BaseTranslate):
 
                 line_id = line_json["id"]
                 if line_id != trans_list[i].index:
-                    error_message = f"输出{line_id}句id未对应"
+                    error_message = f"{line_id}句id未对应{trans_list[i].index}"
                     error_flag = True
                     break
 
@@ -248,8 +246,13 @@ class GPT4TranslateNew(BaseTranslate):
                 trans_list[i].post_zh = line_dst
                 trans_list[i].trans_by = token.model_name
                 result_trans_list.append(trans_list[i])
+                success_count+=1
+
                 if i >= len(trans_list) - 1:
                     break
+            
+            if success_count>0:
+                error_flag=False #部分解析
 
             if error_flag:
 
@@ -290,11 +293,13 @@ class GPT4TranslateNew(BaseTranslate):
                         i = i + 1
                     return i, result_trans_list
                 continue
+            elif error_flag==False and error_message:
+                LOGGER.warning(f"[{filename}:{idx_tip}]解析了{len(trans_list)}句中的{success_count}句，存在问题：{error_message}")
 
             # 翻译完成，收尾
             self.last_translations[filename] = resp
             break
-        return i + 1, result_trans_list
+        return success_count, result_trans_list
 
     async def batch_translate(
         self,
