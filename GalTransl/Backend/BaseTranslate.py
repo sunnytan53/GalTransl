@@ -164,6 +164,8 @@ class BaseTranslate:
     ):
         api_try_count = 0
         stream = stream if stream else self.stream
+        client:AsyncOpenAI
+        token:COpenAIToken
         client,token=random.choices(self.client_list,k=1)[0]
         while True:
             try:
