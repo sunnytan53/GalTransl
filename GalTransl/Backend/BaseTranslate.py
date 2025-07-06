@@ -186,6 +186,9 @@ class BaseTranslate:
 
                 if "qwen3" in token.model_name:
                     messages[-1]["content"]="/no_think"+messages[-1]["content"]
+                
+                if "gemini" in token.model_name:
+                    temperature=NOT_GIVEN
 
                 response = await client.chat.completions.create(
                     model=token.model_name,
