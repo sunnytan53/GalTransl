@@ -402,7 +402,7 @@ class CGptDict:
                         return True
             return False
 
-        def _format_dic_entry_gpt( dic):
+        def _format_dic_entry_gpt(dic:CBasicDicElement):
             """格式化字典条目为提示所需的字符串"""
             entry = f"| {dic.search_word} | {dic.replace_word} |"
             if dic.note:
@@ -410,7 +410,7 @@ class CGptDict:
             entry += " |\n"
             return entry
         TITLE_GPT="# Glossary\n| Src | Dst(/Dst2/..) | Note |\n| --- | --- | --- |\n"
-        def _format_dic_entry_sakura( dic):
+        def _format_dic_entry_sakura(dic:CBasicDicElement):
             """格式化字典条目为提示所需的字符串"""
             entry = f"{dic.search_word}->{dic.replace_word}"
             if dic.note:
@@ -418,7 +418,7 @@ class CGptDict:
             entry += "\n"
             return entry
         TITLE_SAKURA=""
-        def _format_dic_entry_tsv( dic):
+        def _format_dic_entry_tsv(dic:CBasicDicElement):
             """格式化字典条目为提示所需的字符串"""
             entry = f"{dic.search_word}\t{dic.replace_word}"
             if dic.note:
@@ -427,8 +427,6 @@ class CGptDict:
             return entry
         TITLE_TSV="SRC\tDST\tNOTE\n"
 
-    
-        
         promt = ""
         input_text = "\n".join(
             [f"{tran.get_speaker_name()}:{tran.post_jp}" for tran in trans_list]
