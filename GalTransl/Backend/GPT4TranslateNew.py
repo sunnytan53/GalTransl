@@ -102,6 +102,9 @@ class GPT4TranslateNew(BaseTranslate):
                         trans.pre_zh if trans.proofread_zh == "" else trans.proofread_zh
                     ),
                 }
+            
+            if tmp_obj["name"]=="null":
+                del tmp_obj["name"]
 
             input_list.append(json.dumps(tmp_obj, ensure_ascii=False))
         input_src = "\n".join(input_list)
@@ -389,6 +392,8 @@ class GPT4TranslateNew(BaseTranslate):
                 "name": speaker,
                 "dst": current_tran.pre_zh,
             }
+            if speaker=="null":
+                del tmp_obj["name"]
             tmp_context.append(json.dumps(tmp_obj, ensure_ascii=False))
             num_count += 1
             if num_count >= num_pre_request:
