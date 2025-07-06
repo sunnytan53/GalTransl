@@ -14,7 +14,7 @@ from random import choice
 from GalTransl.CSentense import CSentense, CTransList
 from GalTransl.Cache import save_transCache_to_json
 from GalTransl.Dictionary import CGptDict
-from GalTransl.Utils import extract_code_blocks, fix_quotes2
+from GalTransl.Utils import extract_code_blocks,fix_quotes, fix_quotes2
 from GalTransl.Backend.Prompts import (
     NAME_PROMPT4,
     NAME_PROMPT4_R1,
@@ -155,6 +155,7 @@ class GPT4TranslateNew(BaseTranslate):
                     result_text = code_list[0]
             if '{"id' in result_text:
                 result_text = result_text[result_text.find('{"id') :]
+            result_text=fix_quotes(result_text)
 
             i = -1
             success_count=0
