@@ -392,46 +392,70 @@ class CGptDict:
         )
 
     def gen_prompt(self, trans_list: CTransList, type="gpt"):
+        def _should_add_dic(dic, input_text, input_text_copy, used_dic):
+            """判断是否应该添加字典条目到提示中"""
+            if dic.search_word in input_text:
+                return True
+            if dic.search_word in input_text_copy:
+                for word in used_dic:
+                    if word in dic.search_word:
+                        return True
+            return False
+
+        def _format_dic_entry_gpt( dic):
+            """格式化字典条目为提示所需的字符串"""
+            entry = f"| {dic.search_word} | {dic.replace_word} |"
+            if dic.note:
+                entry += f" {dic.note}"
+            entry += " |\n"
+            return entry
+        TITLE_GPT="# Glossary\n| Src | Dst(/Dst2/..) | Note |\n| --- | --- | --- |\n"
+        def _format_dic_entry_sakura( dic):
+            """格式化字典条目为提示所需的字符串"""
+            entry = f"{dic.search_word}->{dic.replace_word}"
+            if dic.note:
+                entry += f" #{dic.note}"
+            entry += "\n"
+            return entry
+        TITLE_SAKURA=""
+        def _format_dic_entry_tsv( dic):
+            """格式化字典条目为提示所需的字符串"""
+            entry = f"{dic.search_word}\t{dic.replace_word}"
+            if dic.note:
+                entry += f"\t#{dic.note}"
+            entry += "\n"
+            return entry
+        TITLE_TSV="SRC\tDST\tNOTE\n"
+
+    
+        
         promt = ""
         input_text = "\n".join(
             [f"{tran.get_speaker_name()}:{tran.post_jp}" for tran in trans_list]
         )
-        if type == "gpt":
-            for i, dic in enumerate(self._dic_list):
-                prev_dic = self._dic_list[i - 1] if i > 0 else None
-                if prev_dic and dic.search_word in prev_dic.search_word:
-                    input_text = input_text.replace(prev_dic.search_word, "")
-                if dic.startswith_flag or dic.search_word in input_text:
-                    promt += f"| {dic.search_word} | {dic.replace_word} |"
-                    if dic.note != "":
-                        promt += f" {dic.note}"
-                    promt += " |\n"
+        input_text_copy=input_text
+        used_dic=[]
 
-            if promt != "":
-                promt = (
-                    "# Glossary\n| Src | Dst(/Dst2/..) | Note |\n| --- | --- | --- |\n"
-                    + promt
-                )
-        elif type == "sakura":
-            for i, dic in enumerate(self._dic_list):
-                prev_dic = self._dic_list[i - 1] if i > 0 else None
-                if prev_dic and dic.search_word in prev_dic.search_word:
-                    input_text = input_text.replace(prev_dic.search_word, "")
-                if dic.startswith_flag or dic.search_word in input_text:
-                    promt += f"{dic.search_word}->{dic.replace_word}"
-                    if dic.note != "":
-                        promt += f" #{dic.note}"
-                    promt += "\n"
-        elif type == "tsv":
-            for i, dic in enumerate(self._dic_list):
-                if dic.startswith_flag or dic.search_word in input_text:
-                    promt += f"{dic.search_word}\t{dic.replace_word}"
-                    input_text = input_text.replace(dic.search_word, "")
-                    if dic.note!= "":
-                        promt += f"\t{dic.note}"
-                    promt += "\n"
-            if promt!= "":
-                promt = f"SRC\tDST\tNOTE\n{promt}"
+
+        for dic in self._dic_list:
+            if _should_add_dic(dic, input_text, input_text_copy, used_dic):
+                if type=="gpt":
+                    promt += _format_dic_entry_gpt(dic)
+                elif type=="sakura":
+                    promt += _format_dic_entry_sakura(dic)
+                elif type=="tsv":
+                    promt += _format_dic_entry_tsv(dic)
+                input_text = input_text.replace(dic.search_word, "")
+                used_dic.append(dic.search_word)
+        if promt:
+            if type=="gpt":
+                promt=TITLE_GPT+promt
+            elif type=="sakura":
+                promt=TITLE_SAKURA+promt
+            elif type=="tsv":
+                promt=TITLE_TSV+promt
+
+
         return promt
 
     def check_dic_use(self, find_from_str: str, tran: CSentense):
