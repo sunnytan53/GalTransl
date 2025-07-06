@@ -167,6 +167,17 @@ class BaseTranslate:
         client:AsyncOpenAI
         token:COpenAIToken
         client,token=random.choices(self.client_list,k=1)[0]
+        if messages == []:
+            messages = [
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ]
+
+        if "qwen3" in token.model_name:
+            messages[-1]["content"]="/no_think"+messages[-1]["content"]
+        if "gemini" in token.model_name:
+            temperature=NOT_GIVEN
+
         while True:
             try:
                 if self.tokenStrategy=="random":
@@ -178,17 +189,6 @@ class BaseTranslate:
                 else:
                     raise ValueError("tokenStrategy must be random or fallback")
                 LOGGER.debug(f"Call api Using token {token.maskToken()}")
-                if messages == []:
-                    messages = [
-                        {"role": "system", "content": system},
-                        {"role": "user", "content": prompt},
-                    ]
-
-                if "qwen3" in token.model_name:
-                    messages[-1]["content"]="/no_think"+messages[-1]["content"]
-                
-                if "gemini" in token.model_name:
-                    temperature=NOT_GIVEN
 
                 response = await client.chat.completions.create(
                     model=token.model_name,
