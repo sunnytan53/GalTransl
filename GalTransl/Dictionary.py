@@ -422,7 +422,7 @@ class CGptDict:
             """格式化字典条目为提示所需的字符串"""
             entry = f"{dic.search_word}\t{dic.replace_word}"
             if dic.note:
-                entry += f"\t#{dic.note}"
+                entry += f"\t{dic.note}"
             entry += "\n"
             return entry
         TITLE_TSV="SRC\tDST\tNOTE\n"
