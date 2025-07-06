@@ -96,7 +96,7 @@ class ForNovelTranslate(BaseTranslate):
                 messages.append({"role": "user", "content": "(……truncated translation request……)"})
                 messages.append({"role": "assistant", "content": self.last_translations[filename]})
             messages.append({"role": "user", "content": prompt_req})
-            if self.enhance_jailbreak:
+            if assistant_prompt:
                 messages.append({"role": "assistant", "content": assistant_prompt})
 
             if self.pj_config.active_workers == 1:
