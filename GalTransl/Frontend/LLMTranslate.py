@@ -89,7 +89,7 @@ async def doLLMTranslate(
     if val := projectConfig.getKey("language"):
         sp = val.split("2")
         projectConfig.source_lang = sp[0]
-        projectConfig.target_lang = sp[1]
+        projectConfig.target_lang = sp[-1]
 
     # 获取待翻译文件列表
     file_list = get_file_list(projectConfig.getInputPath())

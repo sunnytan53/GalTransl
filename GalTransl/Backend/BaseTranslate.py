@@ -50,7 +50,7 @@ class BaseTranslate:
         if val := config.getKey("language"):
             sp = val.split("2")
             self.source_lang = sp[0]
-            self.target_lang = sp[1]
+            self.target_lang = sp[-1]
         elif val := config.getKey("sourceLanguage"):  # 兼容旧版本配置
             self.source_lang = val
             self.target_lang = config.getKey("targetLanguage")
