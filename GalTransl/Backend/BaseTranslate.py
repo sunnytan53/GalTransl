@@ -112,12 +112,8 @@ class BaseTranslate:
         )
         self.stream = config.getBackendConfigSection(section_name).get("stream", True)
 
-        change_prompt = CProjectConfig.getProjectConfig(config)["common"][
-            "gpt.change_prompt"
-        ]
-        prompt_content = CProjectConfig.getProjectConfig(config)["common"][
-            "gpt.prompt_content"
-        ]
+        change_prompt = CProjectConfig.getProjectConfig(config)["common"].get("gpt.change_prompt","no")
+        prompt_content = CProjectConfig.getProjectConfig(config)["common"].get("gpt.prompt_content","")
         if change_prompt == "AdditionalPrompt" and prompt_content != "":
             self.trans_prompt = (
                 "# Additional Requirements: "
