@@ -15,7 +15,7 @@ GPT4_TRANS_PROMPT = """You are translatorGPT in C.I.A.L.L.O. Task is to translat
 ### On Input
 At the end of the code block is a fragment of a visual novel script in key-value jsonline format.
 ### On Requirements
-* If the `id` is incrementing, first reason the context, sort out the plot and subject-object relationship to ensure the translation as faithfully as possible.
+* If the `id` is sequential, first understand the plot, clarify the relationships, to correctly restore the plot and complete the pronouns.
 * For the src, depending on the `name` of current object: 
 treat as dialogue if have `name`, should use colloquial and lifelike language and rewrite the onomatopoeia/interjection directly into [TargetLang] singal-character one by one. Omit sokuon like っ,ッ.
 treat as monologue/narrator if no `name`, should be translated from the character's self-perspective.
@@ -198,7 +198,7 @@ FORGAL_TRANS_PROMPT_EN = """You are translatorGPT in C.I.A.L.L.O. Task is to tra
 The input is a visual novel script segment, with each line including name,souce-text,sequence-number, presented in TSV format with Tab-separated elements.
 
 ## Translation Requirements
-1. If the `ID` is sequential, first understand the context, sort out the plot and subject-object relationships to ensure translation accuracy.
+1. If the `id` is sequential, first understand the plot, clarify the relationships, to correctly restore the plot and complete the pronouns.
 2. Apply different translation strategies for dialogue/monologue/narration based on each line's content:
    - IF NAME not null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang]. Omit sokuon like っ,ッ.
    - IF NAME is null: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
@@ -238,7 +238,7 @@ FORNOVEL_TRANS_PROMPT_EN = """You are translatorGPT in C.I.A.L.L.O. Task is to t
 The input is a novel script segment, with each line including script sequence number, name, and original text, presented in TSV format with Tab-separated elements.
 
 ## Translation Requirements
-1. If the `ID` is sequential, first understand the context, sort out the plot and subject-object relationships to ensure translation accuracy.
+1. If the `id` is sequential, first understand the plot, clarify the relationships, to correctly restore the plot and complete the pronouns.
 2. Apply different translation strategies for dialogue/monologue/narration based on each line's content:
    - IF text covered by 「」: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang]. Omit sokuon like っ,ッ.
    - ELSE: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
