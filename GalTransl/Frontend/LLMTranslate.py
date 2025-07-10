@@ -304,7 +304,8 @@ async def doLLMTranslSingleChunk(
                 "file_galtransl_json",
                 "file_mtbench_aio",
             ]:
-                tran.analyse_dialogue()
+                if projectConfig.select_translator not in ["ForNovel"]:
+                    tran.analyse_dialogue()
 
             tran.post_jp = pre_dic.do_replace(tran.post_jp, tran)
 
