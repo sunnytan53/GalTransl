@@ -112,7 +112,7 @@ class GPT4TranslateNew(BaseTranslate):
             input_list.append(json.dumps(tmp_obj, ensure_ascii=False))
         input_src = "\n".join(input_list)
 
-        self.restore_context(trans_list, 5, filename)
+        self.restore_context(trans_list, 8, filename)
 
         prompt_req = self.trans_prompt
         prompt_req = prompt_req.replace("[Input]", input_src)
