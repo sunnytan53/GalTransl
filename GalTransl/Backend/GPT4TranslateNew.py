@@ -14,7 +14,7 @@ from random import choice
 from GalTransl.CSentense import CSentense, CTransList
 from GalTransl.Cache import save_transCache_to_json
 from GalTransl.Dictionary import CGptDict
-from GalTransl.Utils import extract_code_blocks,fix_quotes, fix_quotes2
+from GalTransl.Utils import extract_code_blocks, fix_quotes, fix_quotes2
 from GalTransl.Backend.Prompts import (
     NAME_PROMPT4,
     NAME_PROMPT4_R1,
@@ -28,6 +28,7 @@ from GalTransl.Backend.Prompts import (
 )
 from GalTransl.Backend.BaseTranslate import BaseTranslate
 from openai._types import NOT_GIVEN
+
 
 class GPT4TranslateNew(BaseTranslate):
     # init
@@ -56,20 +57,22 @@ class GPT4TranslateNew(BaseTranslate):
 
         pass
 
-    async def translate(self, trans_list: CTransList, gptdict="", proofread=False,filename=""):
+    async def translate(
+        self, trans_list: CTransList, gptdict="", proofread=False, filename=""
+    ):
         input_list = []
         tmp_enhance_jailbreak = False
-        n_symbol=""
-        start_idx=trans_list[0].index
-        end_idx=trans_list[-1].index
-        idx_tip=""
-        if start_idx!=end_idx:
-            idx_tip=f"{start_idx}~{end_idx}"
+        n_symbol = ""
+        start_idx = trans_list[0].index
+        end_idx = trans_list[-1].index
+        idx_tip = ""
+        if start_idx != end_idx:
+            idx_tip = f"{start_idx}~{end_idx}"
         else:
-            idx_tip=start_idx
+            idx_tip = start_idx
 
         for i, trans in enumerate(trans_list):
-            speaker_name=trans.get_speaker_name()
+            speaker_name = trans.get_speaker_name()
             speaker = speaker_name if speaker_name else "null"
             speaker = speaker.replace("\r\n", "").replace("\t", "").replace("\n", "")
             src_text = trans.post_jp
@@ -82,7 +85,7 @@ class GPT4TranslateNew(BaseTranslate):
                 n_symbol = "\\n"
             elif "\n" in src_text:
                 n_symbol = "\n"
-            
+
             src_text = src_text.replace("\t", "[t]")
             if n_symbol:
                 src_text = src_text.replace(n_symbol, "<br>")
@@ -102,14 +105,14 @@ class GPT4TranslateNew(BaseTranslate):
                         trans.pre_zh if trans.proofread_zh == "" else trans.proofread_zh
                     ),
                 }
-            
-            if tmp_obj["name"]=="null":
+
+            if tmp_obj["name"] == "null":
                 del tmp_obj["name"]
 
             input_list.append(json.dumps(tmp_obj, ensure_ascii=False))
         input_src = "\n".join(input_list)
 
-        self.restore_context(trans_list,5,filename)
+        self.restore_context(trans_list, 5, filename)
 
         prompt_req = self.trans_prompt
         prompt_req = prompt_req.replace("[Input]", input_src)
@@ -117,7 +120,7 @@ class GPT4TranslateNew(BaseTranslate):
         prompt_req = prompt_req.replace("[SourceLang]", self.source_lang)
         prompt_req = prompt_req.replace("[TargetLang]", self.target_lang)
 
-        retry_count=0
+        retry_count = 0
         while True:  # 一直循环，直到得到数据
             if self.enhance_jailbreak or tmp_enhance_jailbreak:
                 assistant_prompt = "```jsonline"
@@ -126,10 +129,19 @@ class GPT4TranslateNew(BaseTranslate):
 
             messages = []
             messages.append({"role": "system", "content": self.system_prompt})
-            if filename in self.last_translations and self.last_translations[filename] != "":
-                self.last_translations[filename]=self.last_translations[filename].replace("<br>","")
-                messages.append({"role": "user", "content": "(……truncated translation request……)"})
-                messages.append({"role": "assistant", "content": self.last_translations[filename]})
+            if (
+                filename in self.last_translations
+                and self.last_translations[filename] != ""
+            ):
+                self.last_translations[filename] = self.last_translations[
+                    filename
+                ].replace("<br>", "")
+                messages.append(
+                    {"role": "user", "content": "(……truncated translation request……)"}
+                )
+                messages.append(
+                    {"role": "assistant", "content": self.last_translations[filename]}
+                )
             messages.append({"role": "user", "content": prompt_req})
             if assistant_prompt:
                 messages.append({"role": "assistant", "content": assistant_prompt})
@@ -140,7 +152,7 @@ class GPT4TranslateNew(BaseTranslate):
                 )
                 LOGGER.info("->输出：")
             resp = None
-            resp,token = await self.ask_chatbot(
+            resp, token = await self.ask_chatbot(
                 messages=messages,
                 temperature=self.temperature,
                 file_name=f"{filename}:{idx_tip}",
@@ -149,17 +161,17 @@ class GPT4TranslateNew(BaseTranslate):
             result_text = resp or ""
 
             if "</think>" in result_text:
-                result_text=result_text.split("</think>")[-1]
+                result_text = result_text.split("</think>")[-1]
             if "```json" in result_text:
                 lang_list, code_list = extract_code_blocks(result_text)
                 if len(lang_list) > 0 and len(code_list) > 0:
                     result_text = code_list[0]
             if '{"id' in result_text:
                 result_text = result_text[result_text.find('{"id') :]
-            result_text=fix_quotes(result_text)
+            result_text = fix_quotes(result_text)
 
             i = -1
-            success_count=0
+            success_count = 0
             result_trans_list = []
             result_lines = result_text.splitlines()
             error_flag = False
@@ -177,7 +189,6 @@ class GPT4TranslateNew(BaseTranslate):
                     error_message = f"json无法解析行：{line}"
                     error_flag = True
                     break
-
 
                 i += 1
                 # 本行输出不正常
@@ -212,9 +223,7 @@ class GPT4TranslateNew(BaseTranslate):
 
                 # 针对混元模型的乱码问题
                 if "�" in line_dst:
-                    error_message = (
-                        f"第{line_id}句包含乱码：" + line_dst
-                    )
+                    error_message = f"第{line_id}句包含乱码：" + line_dst
                     error_flag = True
                     break
 
@@ -251,17 +260,19 @@ class GPT4TranslateNew(BaseTranslate):
                 trans_list[i].post_zh = line_dst
                 trans_list[i].trans_by = token.model_name
                 result_trans_list.append(trans_list[i])
-                success_count+=1
+                success_count += 1
 
                 if i >= len(trans_list) - 1:
                     break
-            
-            if success_count>0:
-                error_flag=False #部分解析
+
+            if success_count > 0:
+                error_flag = False  # 部分解析
 
             if error_flag:
 
-                LOGGER.error(f"[解析错误][{filename}:{idx_tip}]解析结果出错：{error_message}")
+                LOGGER.error(
+                    f"[解析错误][{filename}:{idx_tip}]解析结果出错：{error_message}"
+                )
                 retry_count += 1
                 await asyncio.sleep(1)
 
@@ -270,18 +281,27 @@ class GPT4TranslateNew(BaseTranslate):
                 # 2次重试则对半拆
                 if retry_count == 2 and len(trans_list) > 1:
                     retry_count -= 1
-                    LOGGER.warning(f"[解析错误][{filename}:{idx_tip}]仍然出错，拆分重试")
+                    LOGGER.warning(
+                        f"[解析错误][{filename}:{idx_tip}]仍然出错，拆分重试"
+                    )
                     return await self.translate(
-                        trans_list[: len(trans_list) // 2], gptdict,proofread=proofread,filename=filename
+                        trans_list[: len(trans_list) // 2],
+                        gptdict,
+                        proofread=proofread,
+                        filename=filename,
                     )
                 # 单句重试仍错则重置会话
                 if retry_count == 3:
                     self.last_translations[filename] = ""
-                    LOGGER.warning(f"[解析错误][{filename}:{idx_tip}]单句仍错，重置会话")
+                    LOGGER.warning(
+                        f"[解析错误][{filename}:{idx_tip}]单句仍错，重置会话"
+                    )
                 # 重试中止
                 if retry_count >= 4:
                     self.last_translations[filename] = ""
-                    LOGGER.error(f"[解析错误][{filename}:{idx_tip}]解析反复出错，跳过本轮翻译")
+                    LOGGER.error(
+                        f"[解析错误][{filename}:{idx_tip}]解析反复出错，跳过本轮翻译"
+                    )
                     i = 0 if i < 0 else i
                     while i < len(trans_list):
                         if not proofread:
@@ -298,8 +318,10 @@ class GPT4TranslateNew(BaseTranslate):
                         i = i + 1
                     return i, result_trans_list
                 continue
-            elif error_flag==False and error_message:
-                LOGGER.warning(f"[{filename}:{idx_tip}]解析了{len(trans_list)}句中的{success_count}句，存在问题：{error_message}")
+            elif error_flag == False and error_message:
+                LOGGER.warning(
+                    f"[{filename}:{idx_tip}]解析了{len(trans_list)}句中的{success_count}句，存在问题：{error_message}"
+                )
 
             # 翻译完成，收尾
             break
@@ -327,9 +349,8 @@ class GPT4TranslateNew(BaseTranslate):
                 if not any(word in tran.post_jp for word in H_WORDS_LIST)
             ]
 
-
         if filename not in self.last_translations:
-            self.last_translations[filename]=""
+            self.last_translations[filename] = ""
 
         i = 0
 
@@ -348,7 +369,7 @@ class GPT4TranslateNew(BaseTranslate):
             dic_prompt = gpt_dic.gen_prompt(trans_list_split, "gpt") if gpt_dic else ""
 
             num, trans_result = await self.translate(
-                trans_list_split, dic_prompt, proofread=proofread,filename=filename
+                trans_list_split, dic_prompt, proofread=proofread, filename=filename
             )
 
             if num > 0:
@@ -370,10 +391,12 @@ class GPT4TranslateNew(BaseTranslate):
 
         return trans_result_list
 
-    def reset_conversation(self,filename=""):
-        self.last_translations[filename]=""
+    def reset_conversation(self, filename=""):
+        self.last_translations[filename] = ""
 
-    def restore_context(self, translist_unhit: CTransList, num_pre_request: int,filename=""):
+    def restore_context(
+        self, translist_unhit: CTransList, num_pre_request: int, filename=""
+    ):
         if translist_unhit[0].prev_tran == None:
             return
         tmp_context = []
@@ -383,14 +406,14 @@ class GPT4TranslateNew(BaseTranslate):
             if current_tran.pre_zh == "":
                 current_tran = current_tran.prev_tran
                 continue
-            speaker_name=current_tran.get_speaker_name()
+            speaker_name = current_tran.get_speaker_name()
             speaker = speaker_name if speaker_name else "null"
             tmp_obj = {
                 "id": current_tran.index,
                 "name": speaker,
                 "dst": current_tran.pre_zh,
             }
-            if speaker=="null":
+            if speaker == "null":
                 del tmp_obj["name"]
             tmp_context.append(json.dumps(tmp_obj, ensure_ascii=False))
             num_count += 1
@@ -400,8 +423,8 @@ class GPT4TranslateNew(BaseTranslate):
 
         tmp_context.reverse()
         json_lines = "\n".join(tmp_context)
-        self.last_translations[filename] = "```jsonline\n" + json_lines+"\n```"
-        #LOGGER.info("-> 恢复了上下文")
+        self.last_translations[filename] = "```jsonline\n" + json_lines + "\n```"
+        # LOGGER.info("-> 恢复了上下文")
 
 
 if __name__ == "__main__":

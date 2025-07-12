@@ -2,7 +2,7 @@ import asyncio
 import httpx
 from opencc import OpenCC
 from typing import Optional
-from GalTransl.COpenAI import COpenAITokenPool,COpenAIToken
+from GalTransl.COpenAI import COpenAITokenPool, COpenAIToken
 from GalTransl.ConfigHelper import CProxyPool
 from GalTransl import LOGGER, LANG_SUPPORTED, TRANSLATOR_DEFAULT_ENGINE
 from GalTransl.i18n import get_text, GT_LANG
@@ -112,8 +112,12 @@ class BaseTranslate:
         )
         self.stream = config.getBackendConfigSection(section_name).get("stream", True)
 
-        change_prompt = CProjectConfig.getProjectConfig(config)["common"].get("gpt.change_prompt","no")
-        prompt_content = CProjectConfig.getProjectConfig(config)["common"].get("gpt.prompt_content","")
+        change_prompt = CProjectConfig.getProjectConfig(config)["common"].get(
+            "gpt.change_prompt", "no"
+        )
+        prompt_content = CProjectConfig.getProjectConfig(config)["common"].get(
+            "gpt.prompt_content", ""
+        )
         if change_prompt == "AdditionalPrompt" and prompt_content != "":
             self.trans_prompt = (
                 "# Additional Requirements: "
@@ -133,15 +137,15 @@ class BaseTranslate:
             proxy_addr = None
 
         trust_env = False  # 不使用系统代理
-        self.client_list=[]
+        self.client_list = []
         for token in self.tokenProvider.get_available_token():
-            client=AsyncOpenAI(
+            client = AsyncOpenAI(
                 api_key=token.token,
                 base_url=token.domain,
                 max_retries=0,
                 http_client=httpx.AsyncClient(proxy=proxy_addr, trust_env=trust_env),
             )
-            self.client_list.append((client,token))
+            self.client_list.append((client, token))
 
         pass
 
@@ -160,9 +164,9 @@ class BaseTranslate:
     ):
         api_try_count = 0
         stream = stream if stream else self.stream
-        client:AsyncOpenAI
-        token:COpenAIToken
-        client,token=random.choices(self.client_list,k=1)[0]
+        client: AsyncOpenAI
+        token: COpenAIToken
+        client, token = random.choices(self.client_list, k=1)[0]
         if messages == []:
             messages = [
                 {"role": "system", "content": system},
@@ -170,18 +174,18 @@ class BaseTranslate:
             ]
 
         if "qwen3" in token.model_name:
-            messages[-1]["content"]="/no_think"+messages[-1]["content"]
+            messages[-1]["content"] = "/no_think" + messages[-1]["content"]
         if "gemini" in token.model_name:
-            temperature=NOT_GIVEN
+            temperature = NOT_GIVEN
 
         while True:
             try:
-                if self.tokenStrategy=="random":
-                    if api_try_count%2==0:
-                        client,token=random.choices(self.client_list,k=1)[0]
-                elif self.tokenStrategy=="fallback":
-                    index=api_try_count%len(self.client_list)
-                    client,token=self.client_list[index]
+                if self.tokenStrategy == "random":
+                    if api_try_count % 2 == 0:
+                        client, token = random.choices(self.client_list, k=1)[0]
+                elif self.tokenStrategy == "fallback":
+                    index = api_try_count % len(self.client_list)
+                    client, token = self.client_list[index]
                 else:
                     raise ValueError("tokenStrategy must be random or fallback")
                 LOGGER.debug(f"Call api Using token {token.maskToken()}")
@@ -216,24 +220,26 @@ class BaseTranslate:
                     try:
                         result = response.choices[0].message.content
                     except:
-                        raise ValueError("response.choices[0].message.content is None, no_candidates")
-                return result,token
+                        raise ValueError(
+                            "response.choices[0].message.content is None, no_candidates"
+                        )
+                return result, token
             except Exception as e:
                 api_try_count += 1
                 # gemini no_candidates
-                if "no_candidates" in str(e) and api_try_count>1:
-                    return "",token
+                if "no_candidates" in str(e) and api_try_count > 1:
+                    return "", token
                 if self.apiErrorWait >= 0:
                     sleep_time = self.apiErrorWait + random.random()
                 else:
                     # https://aws.amazon.com/cn/blogs/architecture/exponential-backoff-and-jitter/
                     sleep_time = 2 ** min(api_try_count, 6)
                     sleep_time = random.randint(0, sleep_time)
-                
-                if len(self.client_list)>1:
-                    token_info=f"[{token.maskToken()}]"
+
+                if len(self.client_list) > 1:
+                    token_info = f"[{token.maskToken()}]"
                 else:
-                    token_info=""
+                    token_info = ""
 
                 if isinstance(e, RateLimitError):
                     self.pj_config.bar.text(
