@@ -76,6 +76,8 @@ class ForNovelTranslate(BaseTranslate):
             input_list.append(tmp_obj)
         input_src = "\n".join(input_list)
 
+        self.restore_context(trans_list, 5,filename)
+        
         prompt_req = self.trans_prompt
         prompt_req = prompt_req.replace("[Input]", input_src)
         prompt_req = prompt_req.replace("[Glossary]", gptdict)
@@ -246,7 +248,6 @@ class ForNovelTranslate(BaseTranslate):
                 LOGGER.warning(f"[{filename}:{idx_tip}]解析了{len(trans_list)}句中的{success_count}句，存在问题：{error_message}")
 
             # 翻译完成，收尾
-            self.last_translations[filename] = resp
             break
         return success_count, result_trans_list
 
@@ -271,10 +272,6 @@ class ForNovelTranslate(BaseTranslate):
                 for tran in translist_unhit
                 if not any(word in tran.post_jp for word in H_WORDS_LIST)
             ]
-
-
-        if filename not in self.last_translations:
-            self.last_translations[filename]=""
 
         i = 0
 
