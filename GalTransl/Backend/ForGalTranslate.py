@@ -131,7 +131,7 @@ class ForGalTranslate(BaseTranslate):
             error_message = ""
 
             if result_text == "":
-                error_message = "输出为空"
+                error_message = "输出为空/被拦截"
                 error_flag = True
 
             for line in result_lines:
