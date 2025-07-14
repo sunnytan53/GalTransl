@@ -188,7 +188,7 @@ class BaseTranslate:
                     client, token = self.client_list[index]
                 else:
                     raise ValueError("tokenStrategy must be random or fallback")
-                LOGGER.debug(f"Call api Using token {token.maskToken()}")
+                LOGGER.debug(f"Call {token.domain} withs token {token.maskToken()}")
 
                 response = await client.chat.completions.create(
                     model=token.model_name,
@@ -341,6 +341,6 @@ class BaseTranslate:
             return
         self._current_temp_type = style_name
         temperature = 0.6
-        frequency_penalty = 0.0
+        frequency_penalty = NOT_GIVEN
         self.temperature = temperature
         self.frequency_penalty = frequency_penalty
