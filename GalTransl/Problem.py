@@ -56,8 +56,9 @@ def find_problems(
 
         problem_list = []
         if CProblemType.词频过高 in find_type:
-            most_word, word_count = get_most_common_char(post_zh)
-            if word_count > 20 and most_word != ".":
+            most_word, word_count = get_most_common_char(pre_zh)
+            most_word_jp, word_count_jp = get_most_common_char(pre_jp)
+            if word_count > 20 and word_count>word_count_jp*2:
                 problem_list.append(f"词频过高-'{most_word}'{str(word_count)}次")
         if CProblemType.标点错漏 in find_type:
             char_to_error = {
@@ -86,7 +87,7 @@ def find_problems(
             if contains_korean(pre_zh) and not contains_korean(pre_jp):
                 problem_list.append("本无韩文")
         if CProblemType.残留日文 in find_type:
-            if contains_japanese(pre_zh):
+            if contains_japanese(pre_zh) and contains_japanese(post_zh):
                 problem_list.append("残留日文")
         if CProblemType.丢失换行 in find_type and n_symbol != "":
             if pre_jp.count(n_symbol) > post_zh.count(n_symbol):
