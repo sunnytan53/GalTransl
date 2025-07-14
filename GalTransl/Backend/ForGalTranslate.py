@@ -99,7 +99,7 @@ class ForGalTranslate(BaseTranslate):
                     filename
                 ].replace("<br>", "")
                 messages.append(
-                    {"role": "user", "content": "(……truncated translation request……)"}
+                    {"role": "user", "content": "###Input\n(...truncated history source texts...)\n### Output\n"}
                 )
                 messages.append(
                     {"role": "assistant", "content": self.last_translations[filename]}
