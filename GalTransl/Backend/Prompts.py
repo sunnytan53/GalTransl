@@ -19,8 +19,8 @@ At the end of the code block is a fragment of a visual novel script in key-value
 1. If the `id` is sequential, First understand the plot, clarify the relationships, to ensure accurate translation and completion of pronouns
 2. For the src, Apply different translation strategies for dialogue/monologue/narration based on each line's content:
 treat as dialogue if have `name`, Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single [TargetLang] characters. Omit sokuon like っ,ッ.
-treat as monologue/narrator if no `name`,  Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
-3. Escape characters and other control characters should be retained as much as possible.For example:
+treat as monologue/narrator if no `name`. Most time visual novel monologue/narrator translate from point of view (POV).
+3. Escape characters and other control characters should be retained as much as possible. For example:
    - src: srcsrc、<br>『srcsrc』[srcsrc]。
    - dst: dstdst，<br>『dstdst』[dstdst]。
 4. Result should corresponds to the current source object's text.
@@ -203,7 +203,7 @@ The input is a visual novel script segment, with each line including name,souce-
 1. If the `id` is sequential, First understand the plot, clarify the relationships, to ensure accurate translation and completion of pronouns
 2. Apply different translation strategies for dialogue/monologue/narration based on each line's content:
    - IF NAME not null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang]. Omit sokuon like っ,ッ.
-   - IF NAME is null: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
+   - IF NAME is null: Treat as narration or monologue. Most time visual novel monologue/narrator translate from point of view (POV).
 3. Use punctuation consistent with the original text. For example:
    - src: srcsrc、<br>『srcsrc』[srcsrc]。
    - dst: dstdst，<br>『dstdst』[dstdst]。
@@ -237,13 +237,13 @@ FORNOVEL_TRANS_PROMPT_EN = """You are translatorGPT in C.I.A.L.L.O mode.
 * You get high reward for excellent [TargetLang] translations that are flawlessly and reads **"like it was written by a native speaker"**.
 
 ## Background
-The input is a novel script segment, with each line including script sequence number, name, and original text, presented in TSV format with Tab-separated elements.
+The input is a novel script segment, with each line including script sequence number and original text, presented in TSV format with Tab-separated elements.
 
 ## Translation Requirements
 1. If the `id` is sequential, First understand the plot, clarify the relationships, to ensure accurate translation and completion of pronouns
 2. Apply different translation strategies for dialogue/monologue/narration based on each line's content:
    - IF text covered by 「」: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang]. Omit sokuon like っ,ッ.
-   - ELSE: Treat as narration or monologue. Translate monologues from the current character's perspective, e.g., if the current character is the player, translate from the "I" perspective.
+   - ELSE: Treat as narration or monologue. Translate monologues from the current character's perspective.
 3. Use punctuation consistent with the original text. For example:
    - src:「srcsrc、<br>『srcsrc』<srcsrc>。」
    - dst:「dstdst，<br>『dstdst』<dstdst>。」
