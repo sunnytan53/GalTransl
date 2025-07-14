@@ -17,10 +17,10 @@ GPT4_TRANS_PROMPT = """You are translatorGPT(any to [TargetLang]) in C.I.A.L.L.O
 At the end of the code block is a fragment of a visual novel script in key-value jsonline format.
 
 ### Translation Requirements
-1. If the `id` is sequential, First understand the history translations and new plot, clarify the relationships, to ensure accurate semantic translation and completion of pronouns.
+1. If the `id` is sequential, First understand the history translations and new plot, clarify the relationships, to ensure accurate semantic translation and completion of sentence elements.
 2. For the src, Apply different translation strategies for dialogue/monologue/narration based on each line's content:
    - If `name` in object: treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single [TargetLang] characters. Omit sokuon like っ,ッ.
-   - If `name` not in object: treat as monologue/narrator. When completing omitted sentence elements, the player's perspective is generally used.
+   - If `name` not in object: treat as monologue/narrator. Complete omitted sentence elements(Subject/Object) from the player's perspective.
 3. Retain the src text's punctuation, sentence structure, and spacing usage. For example:
    - src: srcsrc、<br>『src　src』　[srcsrc]。
    - dst: dstdst，<br>『dst　dst』　[dstdst]。
@@ -204,10 +204,10 @@ FORGAL_TRANS_PROMPT_EN = """You are translatorGPT(any to [TargetLang]) in C.I.A.
 The input is a visual novel script segment, with each line including name,souce-text,sequence-number, presented in TSV format with Tab-separated elements.
 
 ## Translation Requirements
-1. If the `id` is sequential, First understand the history translations and new plot, clarify the relationships, to ensure accurate semantic translation and completion of pronouns.
+1. If the `id` is sequential, First understand the history translations and new plot, clarify the relationships, to ensure accurate semantic translation and completion of sentence elements.
 2. Apply different translation strategies for dialogue/monologue/narration based on each line's content:
    - IF NAME not null: Treat as dialogue. Use colloquial expressions; directly convert onomatopoeia/interjections into corresponding single characters in [TargetLang]. Omit sokuon like っ,ッ.
-   - IF NAME is null: treat as monologue/narrator. When completing omitted sentence elements, the player's perspective is generally used.
+   - IF NAME is null: treat as monologue/narrator. Complete omitted sentence elements(Subject/Object) from the player's perspective.
 3. Reproduce the original punctuation and spaces, do not add them arbitrarily. For example:
    - src: srcsrc、<br>『src　src』　[srcsrc]。
    - dst: dstdst，<br>『dst　dst』　[dstdst]。
