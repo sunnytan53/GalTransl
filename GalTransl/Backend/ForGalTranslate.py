@@ -194,6 +194,7 @@ class ForGalTranslate(BaseTranslate):
                 line_dst = line_dst.replace("[t]", "\t")
                 if n_symbol:
                     line_dst = line_dst.replace("<br>", n_symbol)
+                    line_dst = line_dst.replace("<BR>", n_symbol)
 
                 if "……" in trans_list[i].post_jp and "..." in line_dst:
                     line_dst = line_dst.replace("......", "……")
