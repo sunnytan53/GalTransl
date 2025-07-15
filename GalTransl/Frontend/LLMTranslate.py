@@ -44,7 +44,7 @@ async def update_progress_title(
             else:
                 projectConfig.active_workers = active_workers
             # 更新标题
-            new_title = f"{base_title} [活跃任务: {active_workers}/{workersPerProject}]"
+            new_title = f"{base_title} [{active_workers}/{workersPerProject}并发]"
             bar.title(new_title)
 
             # 每隔一段时间更新一次，避免过于频繁
@@ -212,7 +212,7 @@ async def doLLMTranslate(
     title_update_task = None  # 初始化任务变量
 
     with alive_bar(
-        total=total_lines, title="翻译进度", unit=" line", enrich_print=False, dual_line=True
+        total=total_lines, title="翻译进度", unit=" line", enrich_print=False, dual_line=True,length=30
     ) as bar:
         projectConfig.bar = bar
 
@@ -255,7 +255,6 @@ async def doLLMTranslSingleChunk(
 ) -> Tuple[bool, List, List, str, SplitChunkMetadata]:
 
     async with semaphore:
-        print(f"线程 {semaphore._value} 开始翻译 {split_chunk.file_path}")
         st = time()
         proj_dir = projectConfig.getProjectDir()
         input_dir = projectConfig.getInputPath()
@@ -281,8 +280,7 @@ async def doLLMTranslSingleChunk(
             file_name + (f"_{file_index}" if total_splits > 1 else ""),
         )
         part_info = f" (part {file_index+1}/{total_splits})" if total_splits > 1 else ""
-        # LOGGER.info(f"开始翻译 {file_name}{part_info}, 引擎类型: {eng_type}")
-
+        LOGGER.info(f"开始翻译 project_dir{split_chunk.file_path.replace(proj_dir,'')}")
         LOGGER.debug(f"文件 {file_name} 分块 {file_index+1}/{total_splits}:")
         LOGGER.debug(f"  开始索引: {split_chunk.start_index}")
         LOGGER.debug(f"  结束索引: {split_chunk.end_index}")
@@ -438,7 +436,8 @@ async def postprocess_results(
         )
         makedirs(dirname(output_file_path), exist_ok=True)
         save_func(output_file_path, final_result)
-        LOGGER.info(f"已保存文件: {output_file_path}")  # 添加保存确认日志
+        LOGGER.info(f"结果保存 project_dir{output_file_path.replace(proj_dir,'')}")  # 添加保存确认日志
+        LOGGER.info("------------------------------------------------")
 
 
 async def init_gptapi(

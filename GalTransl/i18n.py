@@ -192,8 +192,8 @@ UI_TEXT = {
         "en": "Plugin {0} execution failed: {1}"
     },
     "file_translation_completed": {
-        "zh-cn": "文件 {0}{1} 翻译完成，用时 {2:.3f}s.",
-        "en": "File {0}{1} translation completed, time used {2:.3f}s."
+        "zh-cn": "文件 {0}{1} 翻译完成，用时 {2:.3f}s",
+        "en": "File {0}{1} translation completed, time used {2:.3f}s"
     },
     "file_chunks_completed": {
         "zh-cn": "文件 {0} 的所有chunk都翻译完成",
