@@ -8,9 +8,10 @@ from typing import List
 import orjson
 import os
 from GalTransl.i18n import get_text,GT_LANG
+import aiofiles
 
 
-def save_transCache_to_json(trans_list: CTransList, cache_file_path, post_save=False):
+async def save_transCache_to_json(trans_list: CTransList, cache_file_path, post_save=False):
     """
     此函数将翻译缓存保存到 JSON 文件中。
 
@@ -57,11 +58,11 @@ def save_transCache_to_json(trans_list: CTransList, cache_file_path, post_save=F
             cache_obj["post_zh_preview"] = tran.post_zh
         cache_json.append(cache_obj)
 
-    with open(cache_file_path, mode="wb") as f:
-        f.write(orjson.dumps(cache_json, option=orjson.OPT_INDENT_2))
+    async with aiofiles.open(cache_file_path, mode="wb") as f:
+        await f.write(orjson.dumps(cache_json, option=orjson.OPT_INDENT_2))
 
 
-def get_transCache_from_json(
+async def get_transCache_from_json(
     trans_list: CTransList,
     cache_file_path,
     retry_failed=False,
@@ -94,9 +95,9 @@ def get_transCache_from_json(
     translist_unhit = []
     cache_dict = {}
     if os.path.exists(cache_file_path):
-        with open(cache_file_path, encoding="utf8") as f:
+        async with aiofiles.open(cache_file_path, encoding="utf8") as f:
             try:
-                cache_dictList = orjson.loads(f.read())
+                cache_dictList = orjson.loads(await f.read())
                 for i, cache in enumerate(cache_dictList):
                     line_now, line_priv, line_next = "", "None", "None"
                     line_now = f'{cache["name"]}{cache["pre_jp"]}'
@@ -190,14 +191,14 @@ def get_transCache_from_json(
             ):
                 if "rebuild" not in eng_type:
                     translist_unhit.append(tran)
-                    LOGGER.debug(f"[cache]retran_key在pre_jp中。message: {line_now}")
+                    LOGGER.info(f"[cache]retran_key in 'pre_jp' message: {line_now}")
                     continue
             # retran_key在problem中
             if retran_key and "problem" in cache_dict[cache_key]:
                 if check_retran_key(retran_key, cache_dict[cache_key]["problem"]):
                     if "rebuild" not in eng_type:
                         translist_unhit.append(tran)
-                        LOGGER.debug(f"[cache]retran_key在problem中。message: {line_now}")
+                        LOGGER.info(f"[cache]retran_key in 'problem' message: {line_now}")
                         continue
 
         # 击中缓存的,post_zh初始值赋pre_zh

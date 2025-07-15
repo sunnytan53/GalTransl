@@ -16,6 +16,7 @@ InquirerPy
 alive-progress
 vaporetto
 langid
+aiofiles
 
 # Tokenizer
 budoux

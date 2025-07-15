@@ -327,7 +327,7 @@ class BaseTranslate:
             trans_result_list += trans_result
             transl_step_count += 1
             if transl_step_count >= self.save_steps:
-                save_transCache_to_json(trans_list, cache_file_path)
+                await save_transCache_to_json(trans_list, cache_file_path)
                 transl_step_count = 0
             LOGGER.info(
                 f"{filename}: {str(len(trans_result_list))}/{str(len_trans_list)}"
