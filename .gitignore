@@ -9,3 +9,7 @@ unittest_*
 useful_tools/GalTransl_DumpInjector/config.ini
 useful_tools/GalTransl_DumpInjector/VNTextPatch/names.xml
 *.log
+
+PreTranslate/**/*.json
+Z/*
+!Z/config.yaml

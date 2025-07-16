@@ -60,6 +60,10 @@ INPUT_FOLDERNAME = "gt_input"
 OUTPUT_FOLDERNAME = "gt_output"
 CACHE_FOLDERNAME = "transl_cache"
 TRANSLATOR_SUPPORTED = {
+    "galtransl-v3": {
+        "zh-cn": "为翻译Gal基于Sakura进一步优化的本地模型",
+        "en": "Further optimized local small model based on Sakura for Gal translation"
+    },
     "ForGal-json": {
         "zh-cn": "(OAI/Claude/Deepseek)(原GPT4)翻译Gal时使用，json格式输入，兼容性好。默认gpt-4模型",
         "en": "(OAI/Claude/Deepseek)Customized template for Gal translation, json input. Default model: gpt-4"
@@ -79,10 +83,6 @@ TRANSLATOR_SUPPORTED = {
     "sakura-v1.0": {
         "zh-cn": "（适用sakura-v1.0）为翻译轻小说/Gal开展大规模训练的本地模型，具有多个型号和大小",
         "en": "(For v1.0 prompt) Locally trained model for light novel/Gal translation, available in multiple sizes"
-    },
-    "galtransl-v3": {
-        "zh-cn": "为翻译Gal基于Sakura进一步优化的本地模型",
-        "en": "Further optimized local small model based on Sakura for Gal translation"
     },
     "GenDic": {
         "zh-cn": "自动化构建GPT字典，需要接大模型如Deepseek-V3",
