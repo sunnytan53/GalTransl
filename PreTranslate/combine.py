@@ -36,7 +36,7 @@ for data in all_data:
     translations[jp] = cn
 
 with open(
-    os.path.join(os.path.dirname(__file__), f"output_{NAME_START}.json"),
+    os.path.join(os.path.dirname(__file__), "output.json"),
     "w+",
     encoding="utf-8",
 ) as file:
