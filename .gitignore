@@ -11,5 +11,5 @@ useful_tools/GalTransl_DumpInjector/VNTextPatch/names.xml
 *.log
 
 PreTranslate/**/*.json
-Z/*
-!Z/config.yaml
+Project/*
+!Project/config.yaml

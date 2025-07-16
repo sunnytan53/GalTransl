@@ -99,7 +99,7 @@ class ProjectManager:
             input_prompt = get_text("input_project_path", GT_LANG).replace("[default]", current_project_display)
             
             # 使用原始 user_input 或验证后的路径作为默认值
-            user_input_raw = "Z" # input(input_prompt).strip() or self.user_input or default_input
+            user_input_raw = "Project" # input(input_prompt).strip() or self.user_input or default_input
 
             if not user_input_raw:
                 continue

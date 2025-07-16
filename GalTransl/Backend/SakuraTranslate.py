@@ -218,9 +218,13 @@ class CSakuraTranslate(BaseTranslate):
                 result_trans_list.append(trans_list[i])
 
             if error_flag:
+                # CHANGE: always retry
                 transl_counter["error_count"] += 1
                 LOGGER.debug(f"错误计数：{transl_counter['error_count']}")
                 LOGGER.debug(f"翻译句数：{transl_counter['tran_count']}")
+
+                LOGGER.warning(f"{filename}: {error_message}")
+                continue
 
                 if self.skipRetry:
                     self.reset_conversation()

@@ -45,8 +45,8 @@ common:
   # Sakura/GalTransl
   gpt.token_limit: 0 # (Sakura/Galtransl-7b)（实验性）大于0时限制每轮请求的token数量。防止爆context时可以设置为llama.cpp -c的数值除2。
   # 调试日志
-  loggingLevel: debug # 日志级别[debug/info/warning]
-  saveLog: true # 是否记录日志到文件[True/False]
+  loggingLevel: warning # 日志级别[debug/info/warning]
+  saveLog: false # 是否记录日志到文件[True/False]
 
 
 
