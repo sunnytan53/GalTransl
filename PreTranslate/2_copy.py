@@ -2,12 +2,16 @@ import os
 import json
 import shutil
 
-TRANSL_PATH = "Z/gtinput"
+NAME_START = ""
+if NAME_START == "":
+    raise RuntimeError("Change NAME_START first!")
+
+
+EXTRACTED_PATH = os.path.join(os.path.dirname(__file__), "Extracted")
+TRANSL_PATH = "Project/gt_input"
 if os.path.exists(TRANSL_PATH):
     shutil.rmtree(TRANSL_PATH)
 os.makedirs(TRANSL_PATH)
-
-EXTRACTED_PATH = os.path.join(os.path.dirname(__file__), "Extracted")
 
 
 # HARDCODED, varied for each VN
@@ -18,7 +22,7 @@ def name_is_update(path: str):
 
 def process_each_json(filename: str, data: dict):
     # filter by filenames to only copy certain route
-    if not filename.startswith("s_"):
+    if not filename.startswith(NAME_START):
         return None
 
     print("REMOVING:", data[0])
