@@ -26,6 +26,9 @@ class file_plugin(GFilePlugin):
         self.comet_file_stats={}
         self.comet_calculator=None
 
+        if "cutoff_rate" in self.task:
+            self.cutoff_count=0
+
 
         pass                                          
 
@@ -66,11 +69,14 @@ class file_plugin(GFilePlugin):
         # 收集该文件所有句子的统计数据
         for item in transl_json:
             message = item['message']
+            mt=message
             ref = item['ref']
             src=item['src']
             if not message or not ref:
                 transl_json_copy.remove(item)
                 continue
+
+            self.line_count += 1
             message = message.replace("\n", "").replace("\r", "")
             ref = ref.replace("\n", "").replace("\r", "")
             src = src.replace("\n", "").replace("\r", "")
@@ -85,7 +91,11 @@ class file_plugin(GFilePlugin):
                 file_stats=calculator.add_stats(file_stats,stats)
                 self.chrf_all_stats=calculator.add_stats(self.chrf_all_stats,stats)
                 item['chrf_score'] = calculator.compute_f_score(stats,beta=self.chrf_beta)  # 单句的分数仍然计算
-                self.line_count += 1
+
+            if "cutoff_rate" in self.task:
+                if len(mt)>len(src):
+                    self.cutoff_count+=len(mt)-len(src)
+
 
         if "chrf" in self.task:
             # 使用累积的统计数据计算文件的总体分数
@@ -133,6 +143,9 @@ class file_plugin(GFilePlugin):
             total_avg_comet_score = sum(self.comet_file_stats.values()) / len(self.comet_file_stats)
             LOGGER.info(f"[COMET翻译评估] 总体 COMET 分数为 {total_avg_comet_score:.2f}")
         
+        if "cutoff_rate" in self.task:
+            cutoff_rate=self.cutoff_count/self.line_count * 1000
+            LOGGER.info(f"[Cutoff翻译评估] 千句截断字符数为 {cutoff_rate:.2f}")
 
 
 
