@@ -8,9 +8,9 @@ backendSpecific:
       - token: sk-example-key2
         endpoint: https://openrouter.ai/api/v1
         modelName: deepseek/deepseek-chat-v3-0324:free
-    tokenStrategy: "random" # 令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个
-    checkAvailable: true # 翻译前检查API是否可用
-    stream: true # 流式请求
+    tokenStrategy: "random" # 令牌策略，random随机轮询；fallback优先第一个，出现[API错误]或[解析错误]时使用下一个
+    checkAvailable: true # 翻译前检查API是否可用[True/False]
+    stream: true # 流式请求[True/False]
     apiTimeout: 120 # 请求超时时间，单位秒
     apiErrorWait: auto # 发生API Error时的等待时间，包括频率限制。auto将自动适应[auto/0-120]
 
@@ -28,7 +28,7 @@ plugin:
     #- text_common_skipNoJP # 跳过无日语句子插件
   # 某个插件自己的设置可以进入plugins目录内修改对应的yaml文件，也可以这样设置：
   file_galtransl_json:
-    output_with_src: False # 输出到gt_output时是否保留原文
+    output_with_src: False # 输出到gt_output时是否保留原文[True/False]
 
 # 程序设置
 common:
