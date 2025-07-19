@@ -156,6 +156,7 @@ class GPT4TranslateNew(BaseTranslate):
                 messages=messages,
                 temperature=self.temperature,
                 file_name=f"{filename}:{idx_tip}",
+                base_try_count=retry_count
             )
 
             result_text = resp or ""
@@ -286,7 +287,7 @@ class GPT4TranslateNew(BaseTranslate):
                         f"[解析错误][{filename}:{idx_tip}]仍然出错，拆分重试"
                     )
                     return await self.translate(
-                        trans_list[: len(trans_list) // 2],
+                        trans_list[: len(trans_list) // 3],
                         gptdict,
                         proofread=proofread,
                         filename=filename,
