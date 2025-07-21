@@ -13,16 +13,22 @@ for filename in os.listdir(OUTPUT_PATH):
             all_data.extend(json.load(file))
 
 
+def add_brackets(s: str):
+    if not s.startswith("「"):
+        s = "「" + s
+    if not s.endswith("」"):
+        s += "」"
+    return s
+
+
 translations = {}
 for data in all_data:
     jp = data["src_msg"]
     cn = data["message"]
 
     if data.get("name"):
-        if not cn.startswith("「"):
-            cn = "「" + cn
-        if not cn.endswith("」"):
-            cn += "」"
+        jp = add_brackets(jp)
+        cn = add_brackets(cn)
 
     if jp in translations:
         old_cn = translations[jp]

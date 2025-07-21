@@ -18,7 +18,7 @@ plugin:
 # 程序设置
 common:
   gpt.numPerRequestTranslate: 4 # 单次请求翻译句子数量，推荐值 < 15
-  workersPerProject: 14 # 同时翻译n个文件（单个文件要多线程时需开启splitFile）
+  workersPerProject: 20 # 同时翻译n个文件（单个文件要多线程时需开启splitFile）
   sortBy: "size" # 翻译顺序，name为文件名，size为大文件优先，多线程时大文件优先可以提高整体速度[name/size]
   language: "zh-cn" # 翻译到的目标语言。[zh-cn/zh-tw/en/ja/ko/ru/fr]
 
