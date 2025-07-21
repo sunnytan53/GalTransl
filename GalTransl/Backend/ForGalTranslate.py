@@ -229,7 +229,7 @@ class ForGalTranslate(BaseTranslate):
                         f"[解析错误][{filename}:{idx_tip}]仍然出错，拆分重试"
                     )
                     return await self.translate(
-                        trans_list[: len(trans_list) // 3],
+                        trans_list[: max(len(trans_list) // 3,1)],
                         gptdict,
                         proofread=proofread,
                         filename=filename,
