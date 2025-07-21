@@ -118,6 +118,7 @@ class ForGalTranslate(BaseTranslate):
                 messages=messages,
                 temperature=self.temperature,
                 file_name=f"{filename}:{idx_tip}",
+                base_try_count=retry_count
             )
 
             result_text = resp or ""
@@ -228,7 +229,7 @@ class ForGalTranslate(BaseTranslate):
                         f"[解析错误][{filename}:{idx_tip}]仍然出错，拆分重试"
                     )
                     return await self.translate(
-                        trans_list[: len(trans_list) // 2],
+                        trans_list[: max(len(trans_list) // 3,1)],
                         gptdict,
                         proofread=proofread,
                         filename=filename,
@@ -248,14 +249,14 @@ class ForGalTranslate(BaseTranslate):
                     i = 0 if i < 0 else i
                     while i < len(trans_list):
                         if not proofread:
-                            trans_list[i].pre_zh = "Failed translation"
-                            trans_list[i].post_zh = "Failed translation"
-                            trans_list[i].problem = "Failed translation"
+                            trans_list[i].pre_zh = "(翻译失败)"+trans_list[i].post_jp
+                            trans_list[i].post_zh = "(翻译失败)"+trans_list[i].post_jp
+                            trans_list[i].problem += "翻译失败"
                             trans_list[i].trans_by = f"{token.model_name}(Failed)"
                         else:
                             trans_list[i].proofread_zh = trans_list[i].pre_zh
                             trans_list[i].post_zh = trans_list[i].pre_zh
-                            trans_list[i].problem = "Failed translation"
+                            trans_list[i].problem += "翻译失败"
                             trans_list[i].proofread_by = f"{token.model_name}(Failed)"
                         result_trans_list.append(trans_list[i])
                         i = i + 1

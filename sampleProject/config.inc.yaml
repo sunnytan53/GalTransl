@@ -8,9 +8,9 @@ backendSpecific:
       - token: sk-example-key2
         endpoint: https://openrouter.ai/api/v1
         modelName: deepseek/deepseek-chat-v3-0324:free
-    tokenStrategy: "random" # 令牌策略，random随机轮询，fallback优先第一个，出现[请求错误]时使用下一个
-    checkAvailable: true # 翻译前检查API是否可用
-    stream: true # 流式请求
+    tokenStrategy: "random" # 令牌策略，random随机轮询；fallback优先第一个，出现[API错误]或[解析错误]时使用下一个
+    checkAvailable: true # 翻译前检查API是否可用[True/False]
+    stream: true # 流式请求[True/False]
     apiTimeout: 120 # 请求超时时间，单位秒
     apiErrorWait: auto # 发生API Error时的等待时间，包括频率限制。auto将自动适应[auto/0-120]
 
@@ -28,7 +28,7 @@ plugin:
     #- text_common_skipNoJP # 跳过无日语句子插件
   # 某个插件自己的设置可以进入plugins目录内修改对应的yaml文件，也可以这样设置：
   file_galtransl_json:
-    output_with_src: False # 输出到gt_output时是否保留原文
+    output_with_src: False # 输出到gt_output时是否保留原文[True/False]
 
 # 程序设置
 common:
@@ -47,12 +47,11 @@ common:
   start_time: "" # 定时启动，例如00:30，留空则立即启动。[00:00-23:59]
   linebreakSymbol: "auto" # 这个项目在json中使用的换行符，找问题和自动修复时用到，不影响翻译。
   skipH: false # 跳过可能触发敏感词检测的句子。[True/False]
-  skipRetry: false # 解析结果出错时，是否跳过循环重试，直接用"Fail Translation"占位。[True/False]
-  retranslFail: false # 重启时重翻所有显示为"Fail Translation"的句子。[True/False]
   retranslKey:
     - "重翻在缓存的problem或pre_jp中包含对应**关键字**的句子，去掉下面列表中的#号注释来使用，也可添加自定义的关键字。"
+    - "翻译失败" # 重试翻译失败的
     #- "残留日文" # 日文平假名片假名残留
-    #- "翻译失败" # Fail Translation对应的problem
+
   # ForGal/ForGal-json/ForNovel/r1
   gpt.enhance_jailbreak: False # 改善拒答[True/False]
   gpt.change_prompt: "no" # 是否开启修改默认prompt,"AdditionalPrompt"为增加额外要求，"OverwritePrompt"为覆写原本的prompt

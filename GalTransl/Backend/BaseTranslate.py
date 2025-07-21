@@ -161,8 +161,9 @@ class BaseTranslate:
         max_tokens=None,
         reasoning_effort=NOT_GIVEN,
         file_name="",
+        base_try_count=0,
     ):
-        api_try_count = 0
+        api_try_count = base_try_count
         stream = stream if stream else self.stream
         client: AsyncOpenAI
         token: COpenAIToken
