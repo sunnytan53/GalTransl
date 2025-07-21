@@ -254,9 +254,9 @@ class ForNovelTranslate(BaseTranslate):
                     i = 0 if i < 0 else i
                     while i < len(trans_list):
                         if not proofread:
-                            trans_list[i].pre_zh = "Failed translation"
-                            trans_list[i].post_zh = "Failed translation"
-                            trans_list[i].problem = "Failed translation"
+                            trans_list[i].pre_zh = "(翻译失败)"+trans_list[i].post_jp
+                            trans_list[i].post_zh = "(翻译失败)"+trans_list[i].post_jp
+                            trans_list[i].problem += "翻译失败"
                             trans_list[i].trans_by = f"{token.model_name}(Failed)"
                         else:
                             trans_list[i].proofread_zh = trans_list[i].pre_zh
