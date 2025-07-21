@@ -169,7 +169,7 @@ class ProjectManager:
             # config_file_name 已经是纯文件名了
             conf_path_in_shortcut = os.path.join(abs_project_dir, self.config_file_name)
             
-            shortcut_filename = f"run_GalTransl_v{GALTRANSL_VERSION}_{self.translator}.bat"
+            shortcut_filename = f"run_GTv{GALTRANSL_VERSION}_{self.config_file_name.replace('.yaml','')}_{self.translator}.bat"
             shortcut_path = os.path.join(abs_project_dir, shortcut_filename)
 
             # 格式化模板
