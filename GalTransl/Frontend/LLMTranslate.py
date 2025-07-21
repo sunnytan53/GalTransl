@@ -280,7 +280,7 @@ async def doLLMTranslSingleChunk(
             file_name + (f"_{file_index}" if total_splits > 1 else ""),
         )
         part_info = f" (part {file_index+1}/{total_splits})" if total_splits > 1 else ""
-        LOGGER.info(f">>> 开始翻译 project_dir{split_chunk.file_path.replace(proj_dir,'')}")
+        LOGGER.info(f">>> 开始翻译 (project_dir){split_chunk.file_path.replace(proj_dir,'')}")
         LOGGER.debug(f"文件 {file_name} 分块 {file_index+1}/{total_splits}:")
         LOGGER.debug(f"  开始索引: {split_chunk.start_index}")
         LOGGER.debug(f"  结束索引: {split_chunk.end_index}")
@@ -436,7 +436,7 @@ async def postprocess_results(
         )
         makedirs(dirname(output_file_path), exist_ok=True)
         save_func(output_file_path, final_result)
-        LOGGER.info(f"+++ 结果保存 project_dir{output_file_path.replace(proj_dir,'')}")  # 添加保存确认日志
+        LOGGER.info(f"+++ 结果保存 (project_dir){output_file_path.replace(proj_dir,'')}")  # 添加保存确认日志
 
 
 async def init_gptapi(
